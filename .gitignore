@@ -1,0 +1,21 @@
+# catkin_tools 生成物：可以随时重新构建，不提交 Git。
+ros_ws/.catkin_tools/
+ros_ws/build/
+ros_ws/devel/
+ros_ws/logs/
+
+ros_debug_ws/.catkin_tools/
+ros_debug_ws/build/
+ros_debug_ws/devel/
+ros_debug_ws/logs/
+
+# ros_debug_ws/src 用来 clone ROS1 上游仓库；保留各上游仓库自己的 Git 历史。
+ros_debug_ws/src/*/
+!ros_debug_ws/src/.gitkeep
+
+# 本地生成的 CTags 数据库。
+.vscode-ctags
+.vscode-ctags.*
+
+# 本机 Compose UID/GID。
+.env

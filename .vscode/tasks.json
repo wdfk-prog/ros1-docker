@@ -1,0 +1,40 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "ROS1 [HOST]: Build ros1_hello in Docker",
+            "type": "process",
+
+            // VS Code 在 Host 上执行 docker；真正的 catkin build 在 Container 中运行。
+            "command": "docker",
+            "args": [
+                "compose",
+                "--project-directory",
+                "${workspaceFolder}",
+                "exec",
+                "-T",
+                "ros1-dev",
+                "bash",
+                "-lc",
+                "source /workspace/.devcontainer/ros_env.bash && cd /workspace/ros_ws && catkin build ros1_hello"
+            ],
+
+            // Host 看不到编译日志里的 /workspace/... 路径，因此这里不使用 $gcc matcher。
+            "problemMatcher": []
+        },
+        {
+            "label": "ROS1 [DEV CONTAINER]: Build ros1_hello",
+            "type": "shell",
+
+            // Reopen in Container 后可直接在 /workspace/ros_ws 中构建。
+            "command": "source /workspace/.devcontainer/ros_env.bash && cd /workspace/ros_ws && catkin build ros1_hello",
+            "options": {
+                "shell": {
+                    "executable": "/bin/bash",
+                    "args": ["-lc"]
+                }
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}

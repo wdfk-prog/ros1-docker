@@ -1,0 +1,30 @@
+{
+    "name": "ROS1 Noetic Docker Dev",
+    "dockerComposeFile": "../compose.yaml",
+    "service": "ros1-dev",
+
+    // 整个仓库保持为 VS Code 根目录；ros_ws 与 ros_debug_ws 都在它下面。
+    "workspaceFolder": "/workspace",
+    "shutdownAction": "none",
+    "remoteUser": "dev",
+
+    // 给 VS Code Remote Extension Host 一个明确的 ROS1/Noetic 环境标识。
+    "remoteEnv": {
+        "ROS_DISTRO": "noetic",
+        "ROS_VERSION": "1"
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "Ranch-Hand-Robotics.rde-ros-1"
+            ],
+            "settings": {
+                // ROS1 插件通过这个脚本加载 underlay 和两个 workspace overlay。
+                "ros.rosSetupScript": "/workspace/.devcontainer/ros_env.bash",
+                "ros.isolateEnvironment": false
+            }
+        }
+    }
+}

@@ -1,0 +1,18 @@
+<launch>
+  <!-- 命令行可以用 publish_rate:=5.0 覆盖默认值。 -->
+  <arg name="publish_rate" default="1.0"/>
+
+  <!-- pkg 是 package 名，type 是 executable 名，name 是运行时 Node 名。 -->
+  <node pkg="ros1_hello"
+        type="hello_node"
+        name="hello_node"
+        output="screen">
+    <!-- 这里的参数位于 hello_node 的 private namespace。 -->
+    <param name="publish_rate" value="$(arg publish_rate)"/>
+  </node>
+
+  <node pkg="ros1_hello"
+        type="hello_listener"
+        name="hello_listener"
+        output="screen"/>
+</launch>

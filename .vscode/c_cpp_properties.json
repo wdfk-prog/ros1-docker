@@ -1,0 +1,51 @@
+{
+    "configurations": [
+        {
+            "name": "ROS1 Noetic",
+
+            // Host 和 Container 都提供 /usr/bin/g++。C/C++ 扩展会用它发现系统头文件。
+            "compilerPath": "/usr/bin/g++",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++14",
+
+            "includePath": [
+                // 业务 workspace 中自己编写的 package 源码。
+                "${workspaceFolder}/ros_ws/src/**",
+
+                // ros_ws 构建后生成的消息、服务等头文件。
+                "${workspaceFolder}/ros_ws/devel/include",
+                "${workspaceFolder}/ros_ws/devel/include/**",
+
+                // roscpp 的真实 include 根。Remote-SSH Host 下 F12 跳转 <ros/ros.h> 依赖这一项。
+                "${workspaceFolder}/ros_debug_ws/src/ros_comm/clients/roscpp/include",
+
+                // 递归索引 ros_debug_ws 中的其它 ROS1 上游源码。
+                "${workspaceFolder}/ros_debug_ws/src/**",
+
+                // Debug workspace 构建后生成的头文件，例如 ros/common.h、std_msgs/String.h。
+                "${workspaceFolder}/ros_debug_ws/devel/include",
+                "${workspaceFolder}/ros_debug_ws/devel/include/**",
+
+                // Reopen in Container 时存在；Remote-SSH Host 上可以不存在。
+                "/opt/ros/noetic/include"
+            ],
+
+            // ROS_INFO 等宏必须来自真实 ROS 头文件，不在这里伪造。
+            "defines": [],
+
+            "browse": {
+                // browse.path 用于 F12、符号搜索和引用查找。
+                "path": [
+                    "${workspaceFolder}/ros_ws/src",
+                    "${workspaceFolder}/ros_ws/devel/include",
+                    "${workspaceFolder}/ros_debug_ws/src",
+                    "${workspaceFolder}/ros_debug_ws/devel/include",
+                    "/opt/ros/noetic/include"
+                ],
+                "limitSymbolsToIncludedHeaders": false
+            }
+        }
+    ],
+    "version": 4
+}

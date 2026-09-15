@@ -1,0 +1,19 @@
+{
+    // C/C++ IntelliSense 统一由 .vscode/c_cpp_properties.json 管理。
+
+    "terminal.integrated.profiles.linux": {
+        "ROS1 Container Bash": {
+            // 在 Remote-SSH Host 窗口中选择这个终端，可以直接进入 ros1-dev Container。
+            "path": "docker",
+            "args": [
+                "compose",
+                "--project-directory",
+                "${workspaceFolder}",
+                "exec",
+                "ros1-dev",
+                "bash"
+            ],
+            "icon": "server-process"
+        }
+    }
+}

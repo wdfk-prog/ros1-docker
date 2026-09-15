@@ -1,0 +1,46 @@
+services:
+  ros1-dev:
+    build:
+      context: .
+      args:
+        # 使用 Host UID/GID 创建 Container 用户，避免 bind mount 产生 root:root 文件。
+        USER_UID: ${LOCAL_UID:-1000}
+        USER_GID: ${LOCAL_GID:-1000}
+
+    image: ros1-noetic-dev:local
+    container_name: ros1-dev
+
+    # ROS1 学习阶段直接使用 Host 网络，先避开 Docker NAT 带来的 ROS_IP/ROS_HOSTNAME 变量。
+    network_mode: host
+
+    # 轻量 PID 1：负责信号转发和僵尸进程回收；它不是 systemd，也不会启动 ROS。
+    init: true
+
+    volumes:
+      # Host 仓库整体映射为 Container 的 /workspace。
+      - type: bind
+        source: .
+        target: /workspace
+
+      # Dev Container 使用的 VS Code Server 数据保存在 named volume 中。
+      - type: volume
+        source: vscode-server
+        target: /home/dev/.vscode-server
+
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+
+    # GDB attach/ptrace 需要额外 capability。
+    cap_add:
+      - SYS_PTRACE
+
+    # 仅用于开发调试，减少不同 Docker/Kernel 组合下的 GDB syscall 限制。
+    security_opt:
+      - seccomp=unconfined
+
+    # 保持开发 Container 长期运行，真正的 ROS 命令由开发者手工启动。
+    command: sleep infinity
+
+volumes:
+  vscode-server:

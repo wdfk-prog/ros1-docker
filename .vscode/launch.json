@@ -1,0 +1,86 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ROS1 [HOST] Debug hello_node in Docker",
+            "type": "cppdbg",
+            "request": "launch",
+
+            // ELF 在 Container 中，由 catkin build 生成。
+            "program": "/workspace/ros_ws/devel/lib/ros1_hello/hello_node",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "/workspace/ros_ws",
+            "MIMode": "gdb",
+
+            "pipeTransport": {
+                // cppdbg 在 Host；docker exec 把 GDB 启动到 ros1-dev Container 中。
+                "pipeCwd": "${workspaceFolder}",
+                "pipeProgram": "docker",
+                "pipeArgs": [
+                    "exec",
+                    "-i",
+                    "ros1-dev",
+                    "sh",
+                    "-c"
+                ],
+                "debuggerPath": "/usr/bin/gdb"
+            },
+
+            "sourceFileMap": {
+                // 调试信息记录 /workspace/...；VS Code 实际打开 Host 的工程目录。
+                "/workspace": "${workspaceFolder}"
+            },
+
+            "environment": [
+                {
+                    "name": "ROS_MASTER_URI",
+                    "value": "http://127.0.0.1:11311"
+                },
+                {
+                    "name": "ROS_PACKAGE_PATH",
+                    "value": "/workspace/ros_ws/src:/workspace/ros_debug_ws/src/ros_comm:/opt/ros/noetic/share"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/workspace/ros_ws/devel/lib:/workspace/ros_debug_ws/devel/lib:/opt/ros/noetic/lib"
+                }
+            ],
+
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable GDB pretty printing",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+
+            // 故意不设置 preLaunchTask：F5 不会自动 build、roscore、rosrun 或 roslaunch。
+        },
+        {
+            "name": "ROS1 [DEV CONTAINER] Debug hello_node directly",
+            "type": "cppdbg",
+            "request": "launch",
+
+            // 这个配置只在 Reopen in Container 后使用。
+            "program": "/workspace/ros_ws/devel/lib/ros1_hello/hello_node",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "/workspace/ros_ws",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "environment": [
+                {
+                    "name": "ROS_MASTER_URI",
+                    "value": "http://127.0.0.1:11311"
+                },
+                {
+                    "name": "LD_LIBRARY_PATH",
+                    "value": "/workspace/ros_ws/devel/lib:/workspace/ros_debug_ws/devel/lib:/opt/ros/noetic/lib"
+                }
+            ],
+            "externalConsole": false
+        }
+    ]
+}

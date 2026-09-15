@@ -1,0 +1,19 @@
+{
+    "recommendations": [
+        // C/C++ IntelliSense、F12 和 GDB 调试。
+        "ms-vscode.cpptools",
+
+        // 查看 Container、Image、Volume、Logs 和 Container 文件。
+        "ms-azuretools.vscode-containers",
+
+        // Dockerfile 与 compose.yaml 编辑辅助。
+        "docker.docker",
+
+        // Reopen in Container / Attach to Running Container。
+        "ms-vscode-remote.remote-containers"
+    ],
+    "unwantedRecommendations": [
+        // 该旧 ROS 扩展已弃用，本工程不使用它。
+        "ms-iot.vscode-ros"
+    ]
+}
