@@ -46,8 +46,15 @@ ros1-docker/
 ├── README.md
 ├── Dockerfile
 ├── compose.yaml
+├── Doxyfile
 ├── .env.example
 ├── .gitignore
+│
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── pages-doxygen.yml
+│       └── publish-image.yml
 │
 ├── .devcontainer/
 │   ├── devcontainer.json
@@ -61,11 +68,12 @@ ros1-docker/
 │   └── tasks.json
 │
 ├── docs/
+│   ├── doxygen-mainpage.md
 │   ├── 01_搭建ROS1_Noetic_Docker开发环境.md
 │   ├── 02_创建catkin工作空间_Package与第一个Node.md
 │   ├── 03_让Node通信_Topic_Parameter与roslaunch.md
 │   ├── 04_使用VSCode_RemoteSSH与DevContainer.md
-│   ├── 05_阅读roscpp源码并使用F12_F5调试.md
+│   └── 05_阅读roscpp源码并使用F12_F5调试.md
 │
 ├── ros_ws/
 │   └── src/
@@ -81,7 +89,6 @@ ros1-docker/
 └── ros_debug_ws/
     └── src/.gitkeep
 ```
-
 ## 推荐学习顺序
 
 教程采用“目标 → 动机 → 分步操作 → 检查点 → 原理 → 问题排查 → 练习”的节奏。不要一次把所有命令复制完；每完成一个检查点，再进入下一步。
@@ -262,6 +269,183 @@ docker compose down
 ```
 
 `docker compose down` 不会删除 Host 源码。`ros_ws`、`ros_debug_ws` 和整个仓库都在 Host bind mount 上。
+
+## CI/CD、在线文档与 GHCR 镜像
+
+这个仓库除了本地开发环境，还包含三条 GitHub Actions 自动化流程。初学时可以把它们理解成：
+
+```text
+提交代码
+   |
+   +--> CI：重新编译 ROS1 示例，确认代码还能构建
+   |
+   +--> Docs CD：重新生成 Doxygen 网站并发布到 GitHub Pages
+   |
+   +--> Image CD：重新构建 Docker 镜像并发布到 GHCR
+```
+
+对应文件如下：
+
+| 工作流 | 作用 | 主要触发条件 |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | 在 ROS1 Noetic Docker 环境中执行真实 `catkin build ros1_hello` | Pull Request、`main` 相关代码更新、手工运行 |
+| `.github/workflows/pages-doxygen.yml` | 把 Markdown、源码和 Doxygen 注释生成 HTML，并发布到 GitHub Pages | `main` 的文档/源码更新、手工运行 |
+| `.github/workflows/publish-image.yml` | 构建开发镜像并推送到 GitHub Container Registry | `main`、`v*` Release tag、手工运行 |
+
+### ROS1 CI 实际检查什么
+
+CI 不会在 GitHub Runner 的 Host 系统中直接安装 ROS1 Noetic。它先使用仓库自己的 `Dockerfile` 构建 Ubuntu 20.04 + ROS1 Noetic 镜像，再把仓库映射到容器 `/workspace` 中执行：
+
+```bash
+cd /workspace/ros_ws
+source /opt/ros/noetic/setup.bash
+catkin init
+catkin config \
+    --merge-devel \
+    --extend /opt/ros/noetic \
+    --cmake-args \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+catkin build ros1_hello
+```
+
+最后还会检查下面两个可执行文件是否真的生成：
+
+```text
+ros_ws/devel/lib/ros1_hello/hello_node
+ros_ws/devel/lib/ros1_hello/hello_listener
+```
+
+因此，GitHub 上绿色的 ROS1 CI 表示“这一 commit 已经在仓库定义的 ROS1 Docker 环境中完成实际编译”，而不只是做了 YAML 或源码静态检查。
+
+### Doxygen 在线文档
+
+文档站目标地址：
+
+```text
+https://wdfk-prog.github.io/ros1-docker/
+```
+
+Doxygen 同时读取：
+
+```text
+docs/                       Markdown 学习文章
+ros_ws/src/ros1_hello/      ROS1 示例源码和代码注释
+```
+
+网站中可以查看 01~05 学习文档，也可以进入 File List、Globals 和源码浏览页面查看 C/C++ 文件与 Doxygen 注释。
+
+第一次启用 GitHub Pages 时，需要在仓库网页手工设置一次：
+
+```text
+Settings
+→ Pages
+→ Build and deployment
+→ Source
+→ GitHub Actions
+```
+
+完成后，`.github/workflows/pages-doxygen.yml` 会负责后续自动生成和部署，不需要提交 `build/doxygen/html` 生成物。
+
+如果想在本机开发 Container 中提前生成一次文档，可以执行：
+
+```bash
+docker compose exec ros1-dev bash
+cd /workspace
+rm -rf build/doxygen
+mkdir -p build/doxygen
+doxygen Doxyfile
+```
+
+生成首页位于：
+
+```text
+/workspace/build/doxygen/html/index.html
+```
+
+`build/doxygen/` 已加入 `.gitignore`，因为它属于可重复生成的临时产物。
+
+### GHCR Docker 镜像
+
+镜像发布地址：
+
+```text
+ghcr.io/wdfk-prog/ros1-docker
+```
+
+`main` 分支发布时会生成：
+
+```text
+ghcr.io/wdfk-prog/ros1-docker:main
+ghcr.io/wdfk-prog/ros1-docker:sha-<commit前7位>
+```
+
+例如以后创建正式 tag：
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+工作流会发布：
+
+```text
+ghcr.io/wdfk-prog/ros1-docker:v1.0.0
+ghcr.io/wdfk-prog/ros1-docker:1.0.0
+ghcr.io/wdfk-prog/ros1-docker:latest
+```
+
+GitHub Container Registry 第一次发布 Container package 时，默认可见性是 **Private**。因此工作流第一次成功 push 镜像后，还要根据你的使用方式选择：
+
+- 保持 Private：拉取镜像前需要先登录 GHCR，并使用具有 package 读取权限的 GitHub 凭据；
+- 改成 Public：任何人都可以匿名 `docker pull`，更适合公开学习仓库。
+
+如果希望公开镜像，需要在 GitHub 网页手工执行一次：
+
+```text
+个人主页
+→ Packages
+→ ros1-docker
+→ Package settings
+→ Danger Zone
+→ Change visibility
+→ Public
+```
+
+GitHub 会明确提示：**package 一旦改成 Public，就不能再改回 Private**。确认确实希望公开之后再执行这个操作。
+
+当 package 已设为 Public，或者当前 Docker 客户端已经登录并拥有读取权限时，可以拉取：
+
+```bash
+docker pull ghcr.io/wdfk-prog/ros1-docker:main
+```
+
+需要注意：GHCR 中预构建镜像的 `dev` 用户固定使用 UID/GID `1000:1000`，这样镜像 tag 的内容保持稳定。如果你的 Host UID/GID 不是 1000，并且要把本机源码 bind mount 进去开发，仍推荐使用本仓库原来的方式：
+
+```bash
+printf 'LOCAL_UID=%s\nLOCAL_GID=%s\n' \
+    "$(id -u)" "$(id -g)" > .env
+
+docker compose up -d --build
+```
+
+这样会针对你的 Host UID/GID 本地重建开发镜像，避免 bind mount 文件权限问题。
+
+### CI 与 CD 的区别
+
+在本仓库中可以先这样理解：
+
+```text
+CI
+= 验证这次改动是否还能正确构建
+= 不发布正式产物
+
+CD
+= 在验证之外，把可使用的结果发布出去
+= GitHub Pages 文档站 / GHCR Docker 镜像
+```
+
+Pull Request 只执行 ROS1 CI，不会向 GHCR 发布镜像，也不会把未合并代码部署为正式文档站。
 
 ## VS Code 的两个工作位置
 

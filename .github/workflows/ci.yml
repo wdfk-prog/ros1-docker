@@ -1,0 +1,107 @@
+name: ROS1 Noetic CI
+
+# 这条工作流负责 Continuous Integration（持续集成）。
+# 它不会把 ROS1 直接安装到 GitHub Runner 上，而是先构建仓库自己的 Dockerfile，
+# 再进入这个 Ubuntu 20.04 + ROS1 Noetic 容器执行 catkin build。
+#
+# 这样做的目的：本地开发环境和 CI 使用同一个 Dockerfile，尽量减少
+# “我的电脑可以编译，但 CI 环境不一样”的差异。
+on:
+  # Pull Request 合并前执行一次编译检查。
+  pull_request:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - ros_ws/**
+      - .devcontainer/**
+      - .github/workflows/ci.yml
+
+  # main 分支每次相关代码更新后也重新验证。
+  push:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - ros_ws/**
+      - .devcontainer/**
+      - .github/workflows/ci.yml
+
+  # 允许初学者从 Actions 页面手工运行，方便学习和排查 CI。
+  workflow_dispatch:
+
+# CI 只需要读取仓库，不需要写 Packages、Pages 或仓库内容。
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ros1_hello in ROS1 container
+    runs-on: ubuntu-latest
+
+    steps:
+      # 把当前 commit 检出到 Runner 的 GITHUB_WORKSPACE。
+      # Action 固定到完整 commit SHA，行尾注释保留方便识别的 release 版本。
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # Dockerfile 支持 USER_UID/USER_GID 参数。
+      # 这里使用 GitHub Runner 当前用户的 UID/GID 来构建 dev 用户，
+      # 这样稍后把仓库 bind mount 到 /workspace 时，容器里的 dev 用户可以直接写入
+      # ros_ws/build、devel、logs 等 catkin 生成目录，不需要 sudo/root。
+      - name: Build ROS1 development image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IMAGE_TAG="ros1-noetic-ci:${GITHUB_SHA}"
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> "${GITHUB_ENV}"
+
+          docker build \
+            --build-arg USER_UID="$(id -u)" \
+            --build-arg USER_GID="$(id -g)" \
+            --tag "${IMAGE_TAG}" \
+            .
+
+      # 在刚刚构建出的镜像中执行与教程相同的 catkin 初始化和编译命令。
+      #
+      # --mount：把 Runner 上的仓库映射到容器 /workspace。
+      # --workdir：让命令从 ros_ws 工作空间开始执行。
+      # --rm：命令结束后自动删除这个一次性 CI 容器。
+      - name: Compile ros1_hello with catkin_tools
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            --mount "type=bind,source=${GITHUB_WORKSPACE},target=/workspace" \
+            --workdir /workspace/ros_ws \
+            "${IMAGE_TAG}" \
+            bash -lc '
+              set -eo pipefail
+
+              # 加载 ROS1 Noetic 的基础环境。
+              source /opt/ros/noetic/setup.bash
+
+              # 初始化当前 catkin_tools workspace。
+              catkin init
+
+              # 与 README/教程保持一致：
+              # - merge-devel：使用统一 devel 空间；
+              # - extend：基于系统安装的 /opt/ros/noetic；
+              # - Debug：便于后续 GDB 学习；
+              # - compile_commands.json：便于 VS Code/clang tooling 使用。
+              catkin config \
+                --merge-devel \
+                --extend /opt/ros/noetic \
+                --cmake-args \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+              # 真正编译仓库中的示例 package。
+              catkin build ros1_hello
+
+              # 除了依赖 catkin build 的退出码，再确认两个目标程序确实生成。
+              test -x devel/lib/ros1_hello/hello_node
+              test -x devel/lib/ros1_hello/hello_listener
+            '

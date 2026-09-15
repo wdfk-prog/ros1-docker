@@ -1,0 +1,176 @@
+name: Publish Docker Image to GHCR
+
+# 这条工作流负责 Docker 镜像的 Continuous Delivery（持续交付）。
+#
+# 发布目标：GitHub Container Registry（GHCR）
+#   ghcr.io/wdfk-prog/ros1-docker
+#
+# 发布规则：
+# - push main        -> :main + :sha-<前7位commit>
+# - push v1.2.3 tag -> :v1.2.3 + :1.2.3 + :latest
+#
+# Pull Request 不会触发本工作流，因此来自 PR 的未合并代码不会被发布成正式镜像。
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+  # 允许在 Actions 页面手工运行。
+  # 为避免误把其它分支覆盖成 :main，后面的脚本会检查实际 ref。
+  workflow_dispatch:
+
+# contents: read 用于 checkout。
+# packages: write 允许 GITHUB_TOKEN 向当前仓库关联的 GHCR package 推送镜像。
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Build and push container image
+    runs-on: ubuntu-latest
+
+    steps:
+      # 取得当前 commit 的 Dockerfile 和其余构建上下文。
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # GHCR 镜像名必须使用小写。
+      # GitHub 的仓库名虽然通常已经是小写，这里仍主动规范化，避免以后重命名时踩坑。
+      - name: Prepare image name and tags
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+
+          echo "image_name=${IMAGE_NAME}" >> "${GITHUB_OUTPUT}"
+
+          # Git tag 发布：例如 refs/tags/v1.2.3。
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+
+            # 本项目约定正式版本 tag 使用 v<semver> 形式。
+            if [[ ! "${VERSION}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z.-]+)?$ ]]; then
+              echo "Unsupported release tag: ${VERSION}" >&2
+              echo "Expected a tag such as v1.0.0." >&2
+              exit 1
+            fi
+
+            # 去掉开头的 v，额外提供常见的纯版本号 tag。
+            VERSION_WITHOUT_V="${VERSION#v}"
+
+            {
+              echo "tags<<EOF"
+              echo "${IMAGE_NAME}:${VERSION}"
+              echo "${IMAGE_NAME}:${VERSION_WITHOUT_V}"
+              echo "${IMAGE_NAME}:latest"
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
+
+          # main 分支发布：提供稳定的 main tag 和可追溯到 commit 的短 SHA tag。
+          elif [[ "${GITHUB_REF_TYPE}" == "branch" && "${GITHUB_REF_NAME}" == "main" ]]; then
+            {
+              echo "tags<<EOF"
+              echo "${IMAGE_NAME}:main"
+              echo "${IMAGE_NAME}:sha-${SHORT_SHA}"
+              echo "EOF"
+            } >> "${GITHUB_OUTPUT}"
+
+          else
+            # workflow_dispatch 可以从任意分支手工启动。
+            # 为避免把测试分支错误发布成 :main，这里明确拒绝非 main、非 release tag 的 ref。
+            echo "Ref ${GITHUB_REF} is not allowed to publish a container image." >&2
+            exit 1
+          fi
+
+      # 先只构建一个本地临时 tag，避免为同一个 Dockerfile 重复 build 多次。
+      # 发布镜像固定使用 UID/GID 1000；如果开发机 Host UID/GID 不是 1000，
+      # README 会建议仍然使用 docker compose --build 创建匹配本机 UID/GID 的开发镜像。
+      - name: Build Docker image
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          LOCAL_IMAGE="ros1-noetic-release:${GITHUB_SHA}"
+          echo "LOCAL_IMAGE=${LOCAL_IMAGE}" >> "${GITHUB_ENV}"
+
+          docker build \
+            --build-arg USER_UID=1000 \
+            --build-arg USER_GID=1000 \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --tag "${LOCAL_IMAGE}" \
+            .
+
+      # 发布前必须再验证一次 ROS1 package，而不能只看 docker build 是否成功。
+      #
+      # 原因：Dockerfile 负责准备 ROS1 开发环境，但不会把 ros_ws COPY 进镜像并编译。
+      # 因此 C++ 代码即使编译失败，docker build 本身也可能成功。
+      #
+      # 这里把仓库只读挂载到 /source，再复制 ros_ws 到容器内 /tmp：
+      # - /source 使用 readonly，验证过程不会修改 checkout；
+      # - /tmp/ros_ws 由镜像中的 dev 用户拥有并可写；
+      # - main、release tag、手工发布都会经过同一条编译门禁。
+      - name: Validate ros1_hello before publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker run --rm \
+            --mount "type=bind,source=${GITHUB_WORKSPACE},target=/source,readonly" \
+            --workdir /tmp \
+            "${LOCAL_IMAGE}" \
+            bash -lc '
+              set -eo pipefail
+
+              # 创建一次性的可写 workspace，避免 UID/GID 与 Runner checkout 所有权互相影响。
+              cp -R /source/ros_ws /tmp/ros_ws
+              cd /tmp/ros_ws
+
+              # 使用与 CI 相同的 ROS1/catkin 配置验证当前源码。
+              source /opt/ros/noetic/setup.bash
+              catkin init
+              catkin config \
+                --merge-devel \
+                --extend /opt/ros/noetic \
+                --cmake-args \
+                -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+              catkin build ros1_hello
+
+              # 只有两个目标都真实生成后，后面的 GHCR 登录和 push 才会执行。
+              test -x devel/lib/ros1_hello/hello_node
+              test -x devel/lib/ros1_hello/hello_listener
+            '
+
+      # 编译验证通过以后才登录 GHCR。
+      # 使用 GitHub 自动提供的短期 GITHUB_TOKEN，不需要自己创建长期 PAT。
+      - name: Log in to GitHub Container Registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+            docker login ghcr.io \
+              --username "${{ github.actor }}" \
+              --password-stdin
+
+      # 给同一个本地镜像添加所有计划 tag，然后逐个 push。
+      # 使用 while/read 可以清楚地看到 Actions 日志中每一个正在发布的 tag。
+      - name: Push Docker image tags
+        shell: bash
+        env:
+          IMAGE_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r tag; do
+            [[ -n "${tag}" ]] || continue
+            echo "Publishing ${tag}"
+            docker tag "${LOCAL_IMAGE}" "${tag}"
+            docker push "${tag}"
+          done <<< "${IMAGE_TAGS}"

@@ -1,0 +1,102 @@
+name: Build and Deploy Doxygen to GitHub Pages
+
+# 这条工作流负责“文档 CD”：
+# 1. 从仓库读取 Markdown 和 C/C++ 源码；
+# 2. 使用 Doxygen 生成静态 HTML；
+# 3. 把 HTML 作为 GitHub Pages artifact 上传；
+# 4. 部署到 https://wdfk-prog.github.io/ros1-docker/ 。
+#
+# 注意：第一次使用前，需要在 GitHub 仓库 Settings -> Pages 中把
+# Build and deployment / Source 设置为 GitHub Actions。
+on:
+  # main 分支中的文档、源码或 Doxygen 配置发生变化时自动重新发布。
+  push:
+    branches:
+      - main
+    paths:
+      - Doxyfile
+      - docs/**
+      - ros_ws/src/ros1_hello/**
+      - .github/workflows/pages-doxygen.yml
+
+  # 允许在 GitHub Actions 页面手工点击“Run workflow”重新发布。
+  workflow_dispatch:
+
+# 默认只给最小权限：
+# - contents: read 只允许读取仓库；
+# - pages: write 允许上传并部署 GitHub Pages；
+# - id-token: write 是官方 deploy-pages 的 OIDC 部署要求。
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只保留最新一次 Pages 发布，避免连续 push 时旧任务最后反而覆盖新任务。
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Doxygen HTML
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout 把当前 commit 放到 GitHub Runner 的工作目录中。
+      # 使用完整 40 位 commit SHA 固定 Action 版本，避免 tag 被意外移动。
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      # configure-pages 读取当前仓库的 Pages 配置，并为后续 artifact/deploy 做准备。
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+
+      # GitHub-hosted Runner 不保证预装我们需要的 Doxygen/Graphviz 版本，
+      # 因此在每次干净 Runner 上显式安装，保证流程可重复。
+      - name: Install Doxygen and Graphviz
+        run: |
+          set -e
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends doxygen graphviz
+
+      # Doxyfile 的 OUTPUT_DIRECTORY 指向 build/doxygen。
+      # 提前创建目录可以让目录关系对初学者更直观，也避免后续步骤依赖隐式创建行为。
+      - name: Prepare Doxygen output directory
+        run: |
+          set -e
+          mkdir -p build/doxygen
+
+      # Doxygen 会读取仓库根目录的 Doxyfile。
+      # 生成完成后额外检查 index.html，避免“命令退出 0 但没有可部署首页”的情况。
+      # .nojekyll 告诉 GitHub Pages 直接按静态文件发布，不再经过 Jekyll 处理。
+      - name: Build Doxygen website
+        run: |
+          set -e
+          doxygen Doxyfile
+          test -f build/doxygen/html/index.html
+          touch build/doxygen/html/.nojekyll
+
+      # 把生成的 HTML 目录打包成 Pages 专用 artifact。
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+        with:
+          path: build/doxygen/html
+
+  deploy:
+    name: Deploy GitHub Pages
+
+    # 只有 build 成功后才部署，避免发布不完整文档。
+    needs: build
+    runs-on: ubuntu-latest
+
+    # github-pages 是 GitHub Pages 的标准 Environment。
+    # 部署成功后，page_url 会显示在本次 Deployment 中。
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # deploy-pages 读取前一个 Job 上传的 Pages artifact 并正式发布。
+      - name: Deploy website
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

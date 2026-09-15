@@ -1,0 +1,187 @@
+# ============================================================================
+# ROS1 Noetic + Docker 学习工程：Doxygen 配置
+#
+# 这个文件负责把两类内容生成到同一个 HTML 网站中：
+#   1. docs/ 下的 Markdown 学习文档；
+#   2. ros_ws/src/ros1_hello 下的 C/C++ 源码、文件列表和 Doxygen 注释。
+#
+# 初学者可以先记住一件事：Doxygen 不是编译器，它只是“读取源码和文档，生成网页”。
+# GitHub Actions 会在每次 main 分支相关文档/源码更新后执行 `doxygen Doxyfile`，
+# 然后把 build/doxygen/html 发布到 GitHub Pages。
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# 1. 项目基本信息
+# ----------------------------------------------------------------------------
+
+# Doxyfile 本身使用 UTF-8，确保中文注释和中文 Markdown 可以正常处理。
+DOXYFILE_ENCODING      = UTF-8
+
+# 允许 Doxygen 正确处理本仓库 docs/ 下的中文文件名。
+ALLOW_UNICODE_NAMES    = YES
+
+# 显示在网页标题和导航区域中的项目名称。
+PROJECT_NAME           = "ROS1 Noetic + Docker Learning Environment"
+
+# 一句话说明这个站点的用途。
+PROJECT_BRIEF          = "ROS1 Noetic Docker learning notes, source browser and API reference"
+
+# 当前仓库没有独立的软件版本号，因此用 main 表示文档来自主分支。
+PROJECT_NUMBER         = main
+
+# ----------------------------------------------------------------------------
+# 2. 输出目录
+# ----------------------------------------------------------------------------
+
+# 所有生成文件都放到 build/ 下，避免污染受 Git 管理的 docs/ 目录。
+OUTPUT_DIRECTORY       = build/doxygen
+
+# HTML 会最终生成到 build/doxygen/html。
+GENERATE_HTML          = YES
+HTML_OUTPUT            = html
+HTML_FILE_EXTENSION    = .html
+
+# 本仓库只需要在线 HTML 文档，不生成 LaTeX/PDF、man page、RTF 或 XML。
+GENERATE_LATEX         = NO
+GENERATE_MAN           = NO
+GENERATE_RTF           = NO
+GENERATE_XML           = NO
+
+# ----------------------------------------------------------------------------
+# 3. Doxygen 要读取哪些文件
+# ----------------------------------------------------------------------------
+
+# 明确指定输入目录，不扫描整个仓库。
+#
+# docs
+#   存放 01~05 学习文章以及 Doxygen 首页。
+#
+# ros_ws/src/ros1_hello
+#   存放示例 ROS1 package。Doxygen 会从这里生成源码浏览和 API 页面。
+INPUT                  = \
+                         docs \
+                         ros_ws/src/ros1_hello
+
+# 只处理本项目真正需要的源码和 Markdown 类型。
+FILE_PATTERNS          = *.c \
+                         *.cc \
+                         *.cpp \
+                         *.h \
+                         *.hpp \
+                         *.md
+
+# 递归扫描 INPUT 目录中的子目录，例如 ros1_hello/src/。
+RECURSIVE              = YES
+
+# 即使以后有人扩大 INPUT 范围，也不要把构建产物、Git 元数据等当作文档输入。
+EXCLUDE                = \
+                         build \
+                         .git \
+                         .github
+
+EXCLUDE_PATTERNS       = \
+                         */build/* \
+                         */devel/* \
+                         */logs/* \
+                         */.git/*
+
+# ----------------------------------------------------------------------------
+# 4. Markdown 文档
+# ----------------------------------------------------------------------------
+
+# 开启 Markdown 支持。Doxygen 原生支持 .md，不需要配置 EXTENSION_MAPPING。
+MARKDOWN_SUPPORT       = YES
+
+# 目录树最多采集三级 Markdown 标题，避免页面左侧导航过深。
+TOC_INCLUDE_HEADINGS   = 3
+
+# 把专门的导航页作为整个 Doxygen 网站首页。
+USE_MDFILE_AS_MAINPAGE = docs/doxygen-mainpage.md
+
+# ----------------------------------------------------------------------------
+# 5. 从 C/C++ 源码提取 API 信息
+# ----------------------------------------------------------------------------
+
+# 即使某个函数暂时还没有 Doxygen 注释，也先把它显示在文档中。
+# 这对学习项目更友好：可以先看到完整结构，再逐步补充规范注释。
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_PRIVATE        = NO
+
+# 未注释成员仍显示出来，不因为“没有注释”而隐藏。
+HIDE_UNDOC_MEMBERS     = NO
+HIDE_UNDOC_CLASSES     = NO
+
+# 让成员和符号列表保持稳定、便于查找。
+SORT_MEMBER_DOCS       = YES
+SORT_BRIEF_DOCS        = YES
+SORT_BY_SCOPE_NAME     = YES
+
+# ----------------------------------------------------------------------------
+# 6. 源码浏览
+# ----------------------------------------------------------------------------
+
+# 生成源码浏览页。这样可以从 File List 进入 hello_node.cpp 等源码页面。
+SOURCE_BROWSER         = YES
+
+# 同时在文档页面中显示源码片段，便于初学者对照“注释/接口”和具体实现。
+INLINE_SOURCES         = YES
+
+# 显示 include 关系以及“谁引用了谁”的导航信息。
+SHOW_INCLUDE_FILES     = YES
+SHOW_HEADERFILE        = YES
+REFERENCES_RELATION    = YES
+REFERENCED_BY_RELATION = YES
+
+# ----------------------------------------------------------------------------
+# 7. HTML 导航与搜索
+# ----------------------------------------------------------------------------
+
+# 开启目录树和完整侧边栏，文档较多时更容易导航。
+GENERATE_TREEVIEW      = YES
+FULL_SIDEBAR           = YES
+HTML_DYNAMIC_MENUS     = YES
+
+# 生成纯静态站点也能使用的客户端搜索。
+SEARCHENGINE           = YES
+SERVER_BASED_SEARCH    = NO
+
+# ----------------------------------------------------------------------------
+# 8. Graphviz 图关系
+# ----------------------------------------------------------------------------
+
+# GitHub Actions 会安装 graphviz，因此可以生成 include/call 等关系图。
+HAVE_DOT               = YES
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
+
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+CLASS_GRAPH            = YES
+COLLABORATION_GRAPH    = YES
+INCLUDE_GRAPH          = YES
+INCLUDED_BY_GRAPH      = YES
+DIRECTORY_GRAPH        = YES
+GROUP_GRAPHS           = YES
+UML_LOOK               = YES
+
+# 0 表示让 Doxygen/Graphviz 根据机器资源自行选择线程数。
+DOT_NUM_THREADS        = 0
+
+# ----------------------------------------------------------------------------
+# 9. 日志与告警策略
+# ----------------------------------------------------------------------------
+
+# CI 日志保留 Doxygen 输出，初学者遇到问题时能直接看到生成过程。
+QUIET                  = NO
+WARNINGS               = YES
+
+# 学习仓库当前并不要求“所有函数必须有注释”，所以未注释符号不作为告警。
+WARN_IF_UNDOCUMENTED   = NO
+
+# Doxygen 语法错误仍然显示为告警，方便后续修正文档。
+WARN_IF_DOC_ERROR      = YES
+
+# Pages 的首要目标是持续发布文档。当前阶段不因为普通 Doxygen warning 阻断网站发布。
+WARN_AS_ERROR          = NO

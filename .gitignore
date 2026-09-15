@@ -19,3 +19,7 @@ ros_debug_ws/src/*/
 
 # 本机 Compose UID/GID。
 .env
+
+# Doxygen 在仓库根目录生成的 HTML/Graphviz 临时产物。
+# 在线网站由 GitHub Actions 重新生成，因此这些文件不需要提交到 Git。
+/build/doxygen/
