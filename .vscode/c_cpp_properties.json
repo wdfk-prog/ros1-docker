@@ -25,6 +25,13 @@
 
                 // Debug workspace 构建后生成的头文件，例如 ros/common.h、std_msgs/String.h。
                 "${workspaceFolder}/ros_debug_ws/devel/include",
+                // roscpp 源码中的很多头使用 #include "common.h"。
+                // roscpp 自己的 CMake 也明确把 devel/include/ros 加入 include_directories。
+                "${workspaceFolder}/ros_debug_ws/devel/include/ros",
+                // roscpp CMake 在 build 目录生成 config.h。
+                // network.cpp 等源码使用 #include "config.h"。
+                "${workspaceFolder}/ros_debug_ws/build/roscpp",
+
                 "${workspaceFolder}/ros_debug_ws/devel/include/**",
 
                 // Reopen in Container 时存在；Remote-SSH Host 上可以不存在。
@@ -39,8 +46,13 @@
                 "path": [
                     "${workspaceFolder}/ros_ws/src",
                     "${workspaceFolder}/ros_ws/devel/include",
+
                     "${workspaceFolder}/ros_debug_ws/src",
                     "${workspaceFolder}/ros_debug_ws/devel/include",
+
+                    "${workspaceFolder}/ros_debug_ws/devel/include/ros",
+                    "${workspaceFolder}/ros_debug_ws/build/roscpp",
+
                     "/opt/ros/noetic/include"
                 ],
                 "limitSymbolsToIncludedHeaders": false

@@ -9,7 +9,7 @@
             // ELF 在 Container 中，由 catkin build 生成。
             "program": "/workspace/ros_ws/devel/lib/ros1_hello/hello_node",
             "args": [],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "/workspace/ros_ws",
             "MIMode": "gdb",
 
@@ -66,7 +66,7 @@
             // 这个配置只在 Reopen in Container 后使用。
             "program": "/workspace/ros_ws/devel/lib/ros1_hello/hello_node",
             "args": [],
-            "stopAtEntry": false,
+            "stopAtEntry": true,
             "cwd": "/workspace/ros_ws",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb",
