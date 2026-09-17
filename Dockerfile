@@ -5,7 +5,7 @@ ARG USERNAME=dev
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-# 安装构建、调试、源码阅读和基础诊断工具。
+# 安装构建、调试、源码阅读、基础诊断和 rqt GUI 观察工具。
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
@@ -18,6 +18,8 @@ RUN apt-get update && \
         pkg-config \
         python3-catkin-tools \
         python3-rosdep \
+        ros-noetic-rqt-graph \
+        ros-noetic-rqt-console \
         tree \
         less \
         vim \

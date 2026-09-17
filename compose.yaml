@@ -16,11 +16,21 @@ services:
     # 轻量 PID 1：负责信号转发和僵尸进程回收；它不是 systemd，也不会启动 ROS。
     init: true
 
+    # rqt_graph / rqt_console 是 Qt GUI。通过 Host 的 X11/XWayland 显示服务把窗口显示到 Ubuntu 桌面。
+    environment:
+      DISPLAY: ${DISPLAY:-:0}
+      QT_X11_NO_MITSHM: "1"
+
     volumes:
       # Host 仓库整体映射为 Container 的 /workspace。
       - type: bind
         source: .
         target: /workspace
+
+      # 把 Host 的 X11 Unix socket 暴露给 Container，供 rqt GUI 连接桌面显示服务。
+      - type: bind
+        source: /tmp/.X11-unix
+        target: /tmp/.X11-unix
 
       # Dev Container 使用的 VS Code Server 数据保存在 named volume 中。
       - type: volume
