@@ -3,12 +3,23 @@ project(ros1_hello)
 
 # 找到 catkin，以及当前 package 使用的 ROS1 组件。
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
   roscpp
   std_msgs
 )
 
-# 当前示例没有向其它 package 导出自定义 library/header，保持最小配置即可。
-catkin_package()
+# 声明本 package 自定义 Topic 消息。
+add_message_files(
+  FILES
+  HelloStatus.msg
+)
+
+# 根据 .msg 生成 C++/Python 等语言绑定。
+generate_messages()
+
+catkin_package(
+  CATKIN_DEPENDS message_runtime roscpp std_msgs
+)
 
 # 使用 catkin 依赖导出的 include path。
 include_directories(
@@ -30,5 +41,32 @@ add_executable(hello_listener
 )
 
 target_link_libraries(hello_listener
+  ${catkin_LIBRARIES}
+)
+
+# 自定义 .msg 示例：单独使用新 Topic，避免改变原 /chatter 教学链路。
+add_executable(custom_msg_publisher
+  src/custom_msg_publisher.cpp
+)
+
+add_dependencies(custom_msg_publisher
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(custom_msg_publisher
+  ${catkin_LIBRARIES}
+)
+
+add_executable(custom_msg_subscriber
+  src/custom_msg_subscriber.cpp
+)
+
+add_dependencies(custom_msg_subscriber
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+target_link_libraries(custom_msg_subscriber
   ${catkin_LIBRARIES}
 )

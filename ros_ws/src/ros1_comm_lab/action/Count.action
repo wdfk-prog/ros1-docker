@@ -1,0 +1,8 @@
+uint32 target
+---
+bool completed
+uint32 final_count
+string message
+---
+uint32 current_count
+float32 progress

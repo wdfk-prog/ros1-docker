@@ -1,0 +1,5 @@
+uint32 input
+---
+bool success
+uint32 output
+string message

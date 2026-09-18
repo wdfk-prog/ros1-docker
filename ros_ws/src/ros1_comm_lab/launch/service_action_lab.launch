@@ -1,0 +1,26 @@
+<launch>
+  <arg name="multiplier" default="2"/>
+  <arg name="bias" default="3"/>
+  <arg name="max_input" default="100"/>
+  <arg name="response_delay" default="0.0"/>
+  <arg name="step_period" default="0.1"/>
+
+  <node pkg="ros1_comm_lab"
+        type="transform_service_server"
+        name="transform_service_server"
+        output="screen">
+    <param name="service_name" value="/comm_lab/transform_value"/>
+    <param name="multiplier" value="$(arg multiplier)"/>
+    <param name="bias" value="$(arg bias)"/>
+    <param name="max_input" value="$(arg max_input)"/>
+    <param name="response_delay" value="$(arg response_delay)"/>
+  </node>
+
+  <node pkg="ros1_comm_lab"
+        type="count_action_server"
+        name="count_action_server"
+        output="screen">
+    <param name="action_name" value="/comm_lab/count"/>
+    <param name="step_period" value="$(arg step_period)"/>
+  </node>
+</launch>

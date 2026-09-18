@@ -36,9 +36,13 @@ ros_ws/src/ros1_hello/
 其中：
 
 ```text
-src/hello_node.cpp       Publisher 示例
-src/hello_listener.cpp   Subscriber 示例
-launch/hello.launch      roslaunch 示例
+src/hello_node.cpp             std_msgs/String Publisher 示例
+src/hello_listener.cpp         std_msgs/String Subscriber 示例
+msg/HelloStatus.msg            自定义 Topic 消息定义
+src/custom_msg_publisher.cpp   自定义消息 Publisher 示例
+src/custom_msg_subscriber.cpp  自定义消息 Subscriber 示例
+launch/hello.launch            标准消息 roslaunch 示例
+launch/custom_msg.launch       自定义消息 roslaunch 示例
 ```
 
 本网站由 GitHub Actions 自动生成并发布到 GitHub Pages；仓库中的 Markdown 和 C/C++ 源码仍然是唯一源文件，不需要手工维护生成后的 HTML。

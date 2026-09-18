@@ -1,0 +1,25 @@
+<launch>
+  <node pkg="ros1_comm_lab"
+        type="transform_service_server"
+        name="transform_service_server"
+        output="screen">
+    <param name="service_name" value="/comm_lab/transform_value"/>
+    <param name="multiplier" value="2"/>
+    <param name="bias" value="3"/>
+    <param name="max_input" value="100"/>
+    <param name="response_delay" value="0.0"/>
+  </node>
+
+  <node pkg="ros1_comm_lab"
+        type="count_action_server"
+        name="count_action_server"
+        output="screen">
+    <param name="action_name" value="/comm_lab/count"/>
+    <param name="step_period" value="0.01"/>
+  </node>
+
+  <test test-name="test_service_action"
+        pkg="ros1_comm_lab"
+        type="test_service_action"
+        time-limit="15.0"/>
+</launch>

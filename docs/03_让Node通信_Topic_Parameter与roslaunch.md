@@ -1,8 +1,8 @@
 <meta name="referrer" content="no-referrer" />
 
-# 03：让 Node 真正通信——Topic、Parameter、日志与 roslaunch
+# 03：让 Node 真正通信——Topic、自定义 `.msg`、Parameter、日志与 roslaunch
 
-> 摘要：这一章把上一章“已经编译好的两个 ELF”真正放进 ROS1 运行时。你会先手工启动 `roscore`、Publisher 和 Subscriber，再用 `rosnode`、`rostopic`、`rosparam` 观察系统，最后把多终端操作收敛成一个 `hello.launch`。
+> 摘要：从手工启动 Publisher/Subscriber 开始，学习 Topic、标准/自定义 .msg、Parameter、日志与 roslaunch，并用命令观察真实 ROS 图。
 
 [TOC]
 
@@ -14,10 +14,12 @@
 2. 会使用 `rosrun` 启动单个 Node；
 3. 会使用 `rosnode list/info` 查看 Node；
 4. 会使用 `rostopic list/info/echo/hz` 查看 Topic；
-5. 理解 Topic 数据为什么不是由 Master 转发；
-6. 理解 private parameter `~publish_rate`；
-7. 会使用 `roslaunch` 一次启动多个 Node；
-8. 会区分终端日志、`/rosout` 和 `~/.ros/log`。
+5. 理解 `std_msgs/String` 与 `std_msgs/msg/String.msg` 的关系；
+6. 会定义 `HelloStatus.msg`，并理解 `.msg` 如何生成 C++ 消息类型；
+7. 理解 Topic 数据为什么不是由 Master 转发；
+8. 理解 private parameter `~publish_rate`；
+9. 会使用 `roslaunch` 一次启动多个 Node；
+10. 会区分终端日志、`/rosout` 和 `~/.ros/log`。
 
 ## 为什么先手工开多个终端
 
@@ -216,6 +218,88 @@ rostopic type /chatter
 std_msgs/String
 ```
 
+### `std_msgs/String` 背后其实就是 `.msg`
+
+这里第一次正式遇到 ROS 的接口描述文件。执行：
+
+```bash
+rosmsg show std_msgs/String
+```
+
+可以看到：
+
+```text
+string data
+```
+
+这份结构来自 `std_msgs` package 中的 `msg/String.msg`。代码里的：
+
+```cpp
+#include <std_msgs/String.h>
+std_msgs::String msg;
+```
+
+并不是 `std_msgs` 的作者手工维护了一份和 `String.msg` 平行的 C++ 协议结构，而是 ROS 根据 `.msg` 生成了对应的语言绑定。
+
+可以先把 `.msg` 理解成一种 **IDL（Interface Definition Language）式的数据契约**：
+
+```text
+String.msg
+    ↓ 描述字段
+string data
+    ↓ message_generation / genmsg
+生成 C++ / Python 等语言类型
+    ↓
+std_msgs::String
+```
+
+它和 protobuf、Thrift、CORBA IDL 的共同点，是先用语言无关的形式定义跨进程交换的数据结构，再生成具体语言可使用的类型。这里的类比只用于建立接口描述的心智模型，并不表示 ROS `.msg` 与这些系统具有相同的 RPC 或传输协议。
+
+更重要的是，要把 **消息类型** 和 **Topic** 分开：
+
+```text
+.msg
+    -> 定义“一条消息里有哪些字段、每个字段是什么类型”
+
+Topic
+    -> 定义“这种消息通过哪个 ROS 名称进行发布/订阅”
+```
+
+因此：
+
+```text
+std_msgs/String
+```
+
+是消息类型，而：
+
+```text
+/chatter
+```
+
+是 Topic 名称。`.msg` 本身既不是 Topic，也不负责指定 TCP/UDP 端口。同一种消息类型可以被多个 Topic 复用，例如多个状态 Topic 都可以使用相同的消息类型；Publisher 和 Subscriber 真正建立连接时，则需要对 Topic 使用的消息类型达成一致。
+
+ROS 生成代码还不只是为了“少写一个 struct”。由接口描述生成的类型会进入后续的序列化、反序列化、类型信息与连接协商流程。应用层因此通常不需要自己维护：
+
+```text
+字段布局
+C++ / Python 对应类型
+序列化 / 反序列化入口
+ROS 消息类型信息
+```
+
+但这并不改变 Topic 的通信语义。Topic 仍然是：
+
+```text
+Publisher
+   │
+   ├──── message ────→ Subscriber A
+   ├──── message ────→ Subscriber B
+   └──── message ────→ Subscriber C
+```
+
+Publisher 表达的是“这里产生了一条数据或事件”，通常不会等待某个 Subscriber 返回一次结果。因此 `/camera/image`、`/imu/data`、`/scan`、`/odom`、`/motor_state` 这类连续数据天然适合 Topic。
+
 直接看消息：
 
 ```bash
@@ -338,7 +422,253 @@ Subscribers:
 
 ---
 
-## Step 6：理解 `rosnode` 和 `rostopic` 的边界
+## Step 6：自己定义一个 `.msg`，理解 Topic 的数据契约
+
+前面的 `/chatter` 使用 ROS 已经提供好的 `std_msgs/String`。现在单独增加一个自定义消息实验，但**不修改原 `/chatter` 示例**，这样后续源码阅读仍然可以继续沿用最简单的 `std_msgs/String`。
+
+### 6.1 定义 `HelloStatus.msg`
+
+新增文件：
+
+```text
+ros_ws/src/ros1_hello/msg/HelloStatus.msg
+```
+
+内容：
+
+```text
+int32 sequence
+string text
+```
+
+这相当于声明一条消息的数据契约：
+
+```text
+HelloStatus
+├── sequence : int32
+└── text     : string
+```
+
+`.msg` 没有 Request/Response，也没有 Goal/Result/Feedback。它只描述“一条消息”的字段。
+
+### 6.2 让 catkin 根据 `.msg` 生成代码
+
+`CMakeLists.txt` 中加入消息生成组件：
+
+```cmake
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  roscpp
+  std_msgs
+)
+```
+
+声明要生成的消息：
+
+```cmake
+add_message_files(
+  FILES
+  HelloStatus.msg
+)
+
+generate_messages()
+```
+
+并把运行期依赖导出：
+
+```cmake
+catkin_package(
+  CATKIN_DEPENDS message_runtime roscpp std_msgs
+)
+```
+
+`package.xml` 对应增加：
+
+```xml
+<build_depend>message_generation</build_depend>
+<build_export_depend>message_runtime</build_export_depend>
+<exec_depend>message_runtime</exec_depend>
+```
+
+使用生成头文件的 target 还要依赖消息生成 target：
+
+```cmake
+add_dependencies(custom_msg_publisher
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+```
+
+Subscriber 同理。
+
+构建：
+
+```bash
+cd /workspace/ros_ws
+catkin build ros1_hello
+source /workspace/ros_ws/devel/setup.bash
+```
+
+先检查 ROS 已经认识这个类型：
+
+```bash
+rosmsg show ros1_hello/HelloStatus
+```
+
+预期：
+
+```text
+int32 sequence
+string text
+```
+
+再找生成的 C++ 头文件：
+
+```bash
+find /workspace/ros_ws/devel -path '*/ros1_hello/HelloStatus.h' -print
+```
+
+在当前 merge-devel 配置下，通常可以看到：
+
+```text
+/workspace/ros_ws/devel/include/ros1_hello/HelloStatus.h
+```
+
+因此源码才能写：
+
+```cpp
+#include <ros1_hello/HelloStatus.h>
+
+ros1_hello::HelloStatus msg;
+msg.sequence = 1;
+msg.text = "hello from custom .msg";
+```
+
+`HelloStatus.h` 是构建产物，不需要也不应该手工维护。
+
+### 6.3 使用自定义消息发布 `/hello_status`
+
+仓库新增：
+
+```text
+src/custom_msg_publisher.cpp
+```
+
+核心代码：
+
+```cpp
+ros::Publisher publisher =
+    nh.advertise<ros1_hello::HelloStatus>("hello_status", 10);
+
+ros1_hello::HelloStatus msg;
+msg.sequence = sequence++;
+msg.text = "hello from custom .msg";
+publisher.publish(msg);
+```
+
+启动：
+
+```bash
+rosrun ros1_hello custom_msg_publisher
+```
+
+另一个终端观察：
+
+```bash
+rostopic type /hello_status
+rosmsg show ros1_hello/HelloStatus
+rostopic echo /hello_status
+```
+
+应该能看到类似：
+
+```text
+sequence: 3
+text: "hello from custom .msg"
+---
+```
+
+### 6.4 Subscriber 使用的是同一个生成类型
+
+仓库同时新增：
+
+```text
+src/custom_msg_subscriber.cpp
+```
+
+它的 callback 类型为：
+
+```cpp
+static void statusCallback(
+    const ros1_hello::HelloStatus::ConstPtr& msg)
+```
+
+启动：
+
+```bash
+rosrun ros1_hello custom_msg_subscriber
+```
+
+Subscriber 会读取相同的两个字段：
+
+```text
+received: sequence=4 text=hello from custom .msg
+```
+
+到这里可以把 Topic 的类型链整理为：
+
+```text
+HelloStatus.msg
+    ↓ message_generation
+ros1_hello/HelloStatus.h
+    ↓
+ros1_hello::HelloStatus C++ 对象
+    ↓ publish()
+/hello_status Topic
+    ↓ TCPROS（当前默认情况）
+ros1_hello::HelloStatus C++ 对象
+    ↓
+Subscriber callback
+```
+
+`.msg` 解决的是**数据契约、代码生成、序列化/反序列化所需的类型一致性**，不是另外发明一种传输协议。真正的通信模型仍然是 Topic 的异步发布/订阅。
+
+因此，第 03 章先建立第一块接口模型：
+
+```text
+HelloStatus.msg
+    ↓
+定义 payload
+    ↓
+生成 ros1_hello::HelloStatus
+    ↓
+publish()/subscribe()
+    ↓
+Topic 异步数据流
+```
+
+阶段 11 再把它扩展为完整的 ROS1 接口描述地图：
+
+```text
+.msg
+    -> 一条消息的数据契约
+    -> Topic 数据流
+
+.srv
+    -> Request --- Response
+    -> RPC 式请求/响应
+
+.action
+    -> Goal --- Result --- Feedback
+    -> 再叠加 Cancel/Preempt 与状态机
+    -> 可观测、可取消的长任务
+```
+
+三者都能减少手工维护跨语言数据结构、序列化类型和接口一致性的工作，但三者之间真正重要的差异不是“谁更省代码”，而是**通信语义不同**。
+
+---
+
+## Step 7：理解 `rosnode` 和 `rostopic` 的边界
 
 初学时很容易把命令混在一起。
 
@@ -380,7 +710,7 @@ rostopic hz /chatter
 
 ---
 
-## Step 7：理解 private parameter `~publish_rate`
+## Step 8：理解 private parameter `~publish_rate`
 
 Publisher 中：
 
@@ -445,7 +775,7 @@ rostopic hz /chatter
 
 ---
 
-## Step 8：用 launch 文件把多个进程组织起来
+## Step 9：用 launch 文件把多个进程组织起来
 
 手工终端已经证明通信链路正确，现在再打开：
 
@@ -542,7 +872,7 @@ pnh.param("publish_rate", ...);
 
 ---
 
-## Step 9：让 `roslaunch` 启动整个示例
+## Step 10：让 `roslaunch` 启动整个示例
 
 先把之前手工启动的 `hello_node`、`hello_listener`、`roscore` 都 Ctrl+C 停掉。
 
@@ -604,9 +934,24 @@ pnh.param("publish_rate", ...)
 ros::Rate(5.0)
 ```
 
+前面自定义 `.msg` 的两个 Node 也提供了独立 launch 文件。已经理解 `roslaunch` 后，可以执行：
+
+```bash
+roslaunch ros1_hello custom_msg.launch
+```
+
+它只启动：
+
+```text
+/custom_msg_publisher
+/custom_msg_subscriber
+```
+
+并通过 `/hello_status` 交换 `ros1_hello/HelloStatus`。
+
 ---
 
-## Step 10：理解 ROS 日志的三层位置
+## Step 11：理解 ROS 日志的三层位置
 
 代码中：
 
@@ -654,7 +999,7 @@ ls -l ~/.ros/log
 
 ---
 
-## Step 11：认识 XML-RPC 和 TCPROS 的职责差异
+## Step 12：认识 XML-RPC 和 TCPROS 的职责差异
 
 ROS1 常见通信机制可以先分成两层：
 
@@ -689,7 +1034,7 @@ Subscriber → Master
 
 ---
 
-## Step 12：形成一组最小运行时命令
+## Step 13：形成一组最小运行时命令
 
 Node：
 
@@ -797,7 +1142,8 @@ ros::spin();
 2. 不运行 `hello_listener`，观察 `rostopic info /chatter` 中 Subscribers 的变化；
 3. 不运行 `hello_node`，只启动 listener，观察它是否仍能存活；
 4. 用 `rosnode info` 比较 Publisher 和 Subscriber 的 Publications/Subscriptions；
-5. 用 `rostopic type` 和 `rosmsg show std_msgs/String` 查看消息定义。
+5. 用 `rostopic type` 和 `rosmsg show std_msgs/String` 查看标准消息定义；
+6. 运行 `custom_msg_publisher` / `custom_msg_subscriber`，再用 `rosmsg show ros1_hello/HelloStatus` 与 `rostopic echo /hello_status` 对照自定义 `.msg`。
 
 下一章开始进入 VS Code。重点不是“安装几个插件”，而是明确：
 
@@ -812,5 +1158,6 @@ F5 的 GDB 到底运行在哪里？
 
 - [ROS Wiki: Understanding ROS Nodes](https://wiki.ros.org/ROS/Tutorials/UnderstandingNodes)
 - [ROS Wiki: Understanding ROS Topics](https://wiki.ros.org/ROS/Tutorials/UnderstandingTopics)
+- [ROS Noetic genmsg: User macro reference](https://docs.ros.org/en/noetic/api/genmsg/html/usermacros.html)
 - [ROS Wiki: roslaunch](https://wiki.ros.org/roslaunch)
 - [ROS Wiki: Parameter Server](https://wiki.ros.org/Parameter%20Server)

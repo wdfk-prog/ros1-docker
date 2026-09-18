@@ -81,10 +81,15 @@ ros1-docker/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           ├── launch/hello.launch
+│           ├── msg/HelloStatus.msg
+│           ├── launch/
+│           │   ├── hello.launch
+│           │   └── custom_msg.launch
 │           └── src/
 │               ├── hello_node.cpp
-│               └── hello_listener.cpp
+│               ├── hello_listener.cpp
+│               ├── custom_msg_publisher.cpp
+│               └── custom_msg_subscriber.cpp
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -99,7 +104,7 @@ ros1-docker/
 | --- | --- | --- |
 | 1 | `01_搭建ROS1_Noetic_Docker开发环境.md` | 理解 Image/Container/Bind Mount，并启动稳定的 ROS1 开发 Container |
 | 2 | `02_创建catkin工作空间_Package与第一个Node.md` | 理解 workspace/package/CMake/catkin，并构建第一个 ROS1 C++ Node |
-| 3 | `03_让Node通信_Topic_Parameter与roslaunch.md` | 会运行 Node、查看 Topic、使用参数和 roslaunch |
+| 3 | `03_让Node通信_Topic_Parameter与roslaunch.md` | 会运行 Node、查看 Topic、定义自定义 `.msg`、使用参数和 roslaunch |
 | 4 | `04_使用VSCode_RemoteSSH与DevContainer.md` | 理解 Host IDE 与 Container IDE 的边界，建立稳定的 IntelliSense/F12 工作流 |
 | 5 | `05_阅读roscpp源码并使用F12_F5调试.md` | 能阅读 `ros::init()` 源码，并用 GDB/F5 进入 roscpp |
 

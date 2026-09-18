@@ -9,7 +9,14 @@
   <!-- catkin 是本 package 的构建系统依赖。 -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <!-- message_generation 在构建阶段根据 .msg 生成语言绑定。 -->
+  <build_depend>message_generation</build_depend>
+
   <!-- roscpp = ROS1 C++ Client Library；std_msgs 提供 String 等标准消息。 -->
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+
+  <!-- 运行/导出生成消息时需要 message_runtime。 -->
+  <build_export_depend>message_runtime</build_export_depend>
+  <exec_depend>message_runtime</exec_depend>
 </package>
