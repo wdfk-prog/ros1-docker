@@ -16,10 +16,15 @@ RUN apt-get update && \
         doxygen \
         graphviz \
         pkg-config \
+        libgtest-dev \
         python3-catkin-tools \
         python3-rosdep \
         ros-noetic-rqt-graph \
         ros-noetic-rqt-console \
+        ros-noetic-rqt-plot \
+        ros-noetic-rqt-topic \
+        ros-noetic-rosbag \
+        ros-noetic-rostest \
         tree \
         less \
         vim \

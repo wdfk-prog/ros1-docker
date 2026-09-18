@@ -2,7 +2,7 @@
 <package format="2">
   <name>ros1_comm_lab</name>
   <version>0.0.1</version>
-  <description>ROS1 roscpp callback queue, spinner, and threading experiments.</description>
+  <description>ROS1 roscpp communication, callback, and testing experiments.</description>
   <maintainer email="dev@example.com">dev</maintainer>
   <license>BSD</license>
 
@@ -10,4 +10,6 @@
 
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+
+  <test_depend>rostest</test_depend>
 </package>

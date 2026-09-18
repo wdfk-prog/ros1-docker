@@ -1,0 +1,14 @@
+<launch>
+  <arg name="multiplier" default="2"/>
+  <arg name="bias" default="3"/>
+  <arg name="max_input" default="100"/>
+
+  <node pkg="ros1_comm_lab"
+        type="testable_node"
+        name="testable_node"
+        output="screen">
+    <param name="multiplier" value="$(arg multiplier)"/>
+    <param name="bias" value="$(arg bias)"/>
+    <param name="max_input" value="$(arg max_input)"/>
+  </node>
+</launch>
