@@ -1,0 +1,20 @@
+<launch>
+  <arg name="spinner_mode" default="spin"/>
+  <arg name="spinner_threads" default="2"/>
+  <arg name="queue_size" default="100"/>
+  <arg name="slow_delay" default="2.0"/>
+  <arg name="allow_concurrent_callbacks" default="false"/>
+  <arg name="spin_once_period" default="0.01"/>
+
+  <node pkg="ros1_comm_lab"
+        type="spinner_lab"
+        name="spinner_lab"
+        output="screen">
+    <param name="spinner_mode" value="$(arg spinner_mode)"/>
+    <param name="spinner_threads" value="$(arg spinner_threads)"/>
+    <param name="queue_size" value="$(arg queue_size)"/>
+    <param name="slow_delay" value="$(arg slow_delay)"/>
+    <param name="allow_concurrent_callbacks" value="$(arg allow_concurrent_callbacks)"/>
+    <param name="spin_once_period" value="$(arg spin_once_period)"/>
+  </node>
+</launch>

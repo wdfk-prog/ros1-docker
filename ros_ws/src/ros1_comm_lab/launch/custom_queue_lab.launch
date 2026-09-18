@@ -1,0 +1,12 @@
+<launch>
+  <arg name="queue_size" default="100"/>
+  <arg name="driver_delay" default="2.0"/>
+
+  <node pkg="ros1_comm_lab"
+        type="custom_queue_lab"
+        name="custom_queue_lab"
+        output="screen">
+    <param name="queue_size" value="$(arg queue_size)"/>
+    <param name="driver_delay" value="$(arg driver_delay)"/>
+  </node>
+</launch>
