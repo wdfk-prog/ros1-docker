@@ -884,6 +884,13 @@ roslaunch ros1_hello hello.launch
 
 如果当前没有 ROS Master，`roslaunch` 会处理启动所需的 Master。
 
+这一章先把 `roslaunch` 当成“统一启动多个 Node 的工具”。实际工程通常不会要求操作人员先执行 `roscore`，
+再逐个 `rosrun`；更常见的是由一个顶层 bringup launch 统一启动整套系统，让 roslaunch 在需要时拉起 Master。
+
+还要提前保留一个边界：launch 文件中 `<node>` 的书写位置不能当成“业务 READY”契约。一个进程已经被创建，
+不等于它的硬件、Service、TF、Action Server 或其他业务资源已经可以使用。这个问题在阶段 A 最后的 11.5 章中，
+会通过 `ros1_bringup + ready_server/ready_client + compose.runtime.yaml` 做成完整工程实验。
+
 另开终端：
 
 ```bash

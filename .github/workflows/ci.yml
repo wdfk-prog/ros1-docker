@@ -36,7 +36,7 @@ permissions:
 
 jobs:
   build:
-    name: Build ros1_hello in ROS1 container
+    name: Build ROS1 workspace examples
     runs-on: ubuntu-latest
 
     steps:
@@ -68,7 +68,7 @@ jobs:
       # --mount：把 Runner 上的仓库映射到容器 /workspace。
       # --workdir：让命令从 ros_ws 工作空间开始执行。
       # --rm：命令结束后自动删除这个一次性 CI 容器。
-      - name: Compile ros1_hello with catkin_tools
+      - name: Compile example packages with catkin_tools
         shell: bash
         run: |
           set -euo pipefail
@@ -99,9 +99,15 @@ jobs:
                 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
               # 真正编译仓库中的示例 package。
-              catkin build ros1_hello
+              catkin build ros1_hello ros1_bringup
 
-              # 除了依赖 catkin build 的退出码，再确认两个目标程序确实生成。
+              # 除了依赖 catkin build 的退出码，再确认关键教学目标程序确实生成。
               test -x devel/lib/ros1_hello/hello_node
               test -x devel/lib/ros1_hello/hello_listener
+              test -x devel/lib/ros1_hello/ready_server
+              test -x devel/lib/ros1_hello/ready_client
+
+              # bringup package 必须能被 ROS package 索引发现。
+              source devel/setup.bash
+              rospack find ros1_bringup >/dev/null
             '

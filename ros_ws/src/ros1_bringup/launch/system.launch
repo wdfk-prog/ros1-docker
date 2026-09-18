@@ -1,0 +1,28 @@
+<launch>
+  <!-- 顶层 bringup 只负责“系统由哪些 Node 组成”，不把业务 READY 依赖编码成启动延时。 -->
+  <arg name="publish_rate" default="1.0"/>
+  <arg name="driver_startup_delay" default="3.0"/>
+  <arg name="ready_timeout" default="10.0"/>
+
+  <!-- 复用前面章节已经完成的 Publisher/Subscriber。 -->
+  <include file="$(find ros1_hello)/launch/hello.launch">
+    <arg name="publish_rate" value="$(arg publish_rate)"/>
+  </include>
+
+  <!-- 故意把依赖方写在提供方前面：XML 顺序不能作为“业务 READY”契约。 -->
+  <node pkg="ros1_hello"
+        type="ready_client"
+        name="ready_client"
+        output="screen"
+        required="true">
+    <param name="wait_timeout" value="$(arg ready_timeout)"/>
+  </node>
+
+  <node pkg="ros1_hello"
+        type="ready_server"
+        name="ready_server"
+        output="screen"
+        required="true">
+    <param name="startup_delay" value="$(arg driver_startup_delay)"/>
+  </node>
+</launch>

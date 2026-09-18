@@ -46,6 +46,7 @@ ros1-docker/
 ├── README.md
 ├── Dockerfile
 ├── compose.yaml
+├── compose.runtime.yaml
 ├── Doxyfile
 ├── .env.example
 ├── .gitignore
@@ -73,23 +74,32 @@ ros1-docker/
 │   ├── 02_创建catkin工作空间_Package与第一个Node.md
 │   ├── 03_让Node通信_Topic_Parameter与roslaunch.md
 │   ├── 04_使用VSCode_RemoteSSH与DevContainer.md
-│   └── 05_阅读roscpp源码并使用F12_F5调试.md
+│   ├── 05_阅读roscpp源码并使用F12_F5调试.md
+│   └── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
 │
 ├── ros_ws/
 │   └── src/
-│       └── ros1_hello/
+│       ├── ros1_hello/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   ├── msg/HelloStatus.msg
+│       │   ├── launch/
+│       │   │   ├── hello.launch
+│       │   │   └── custom_msg.launch
+│       │   └── src/
+│       │       ├── hello_node.cpp
+│       │       ├── hello_listener.cpp
+│       │       ├── custom_msg_publisher.cpp
+│       │       ├── custom_msg_subscriber.cpp
+│       │       ├── ready_server.cpp
+│       │       └── ready_client.cpp
+│       │
+│       └── ros1_bringup/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           ├── msg/HelloStatus.msg
-│           ├── launch/
-│           │   ├── hello.launch
-│           │   └── custom_msg.launch
-│           └── src/
-│               ├── hello_node.cpp
-│               ├── hello_listener.cpp
-│               ├── custom_msg_publisher.cpp
-│               └── custom_msg_subscriber.cpp
+│           └── launch/system.launch
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -274,6 +284,40 @@ docker compose down
 ```
 
 `docker compose down` 不会删除 Host 源码。`ros_ws`、`ros_debug_ws` 和整个仓库都在 Host bind mount 上。
+
+### 整机运行 Compose
+
+`compose.yaml` 保持开发用途：Container 长期执行 `sleep infinity`，由开发者手工运行 ROS 命令。
+阶段 A 最后的工程实验另外提供 `compose.runtime.yaml`，让 Container 直接执行顶层 `roslaunch`。
+
+先在开发 Container 中完成一次 workspace 构建：
+
+```bash
+cd /workspace/ros_ws
+catkin build ros1_hello ros1_bringup
+```
+
+回到 Host 后启动运行态：
+
+```bash
+# 首次创建/启动运行态 Container
+# --build 仅构建 Docker Image，不替代上面的 catkin build。
+docker compose -f compose.runtime.yaml up -d --build
+
+# 查看整套 ROS 系统日志
+docker compose -f compose.runtime.yaml logs -f
+
+# 查看运行状态
+docker compose -f compose.runtime.yaml ps
+
+# 停止并删除运行态 Container
+docker compose -f compose.runtime.yaml down
+```
+
+`compose.runtime.yaml` 使用 `restart: unless-stopped`。运行态 Container 首次创建后，只要 Docker daemon 随系统启动、
+Container 没有被人工停止或删除，Host 重启后 Docker 会按 restart policy 恢复该 Container。
+
+完整启动链和 READY 依赖实验见 `docs/ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md`。
 
 ## CI/CD、在线文档与 GHCR 镜像
 

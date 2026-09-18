@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   roscpp
   std_msgs
+  std_srvs
 )
 
 # 声明本 package 自定义 Topic 消息。
@@ -18,7 +19,7 @@ add_message_files(
 generate_messages()
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime roscpp std_msgs
+  CATKIN_DEPENDS message_runtime roscpp std_msgs std_srvs
 )
 
 # 使用 catkin 依赖导出的 include path。
@@ -68,5 +69,23 @@ add_dependencies(custom_msg_subscriber
 )
 
 target_link_libraries(custom_msg_subscriber
+  ${catkin_LIBRARIES}
+)
+
+# 工程启动依赖示例：ready_server 模拟驱动初始化完成后提供 READY Service，
+# ready_client 等待 READY 后才进入业务 Topic 路径。
+add_executable(ready_server
+  src/ready_server.cpp
+)
+
+target_link_libraries(ready_server
+  ${catkin_LIBRARIES}
+)
+
+add_executable(ready_client
+  src/ready_client.cpp
+)
+
+target_link_libraries(ready_client
   ${catkin_LIBRARIES}
 )

@@ -1,0 +1,43 @@
+services:
+  ros1-runtime:
+    build:
+      context: .
+      args:
+        USER_UID: ${LOCAL_UID:-1000}
+        USER_GID: ${LOCAL_GID:-1000}
+
+    image: ros1-noetic-dev:local
+    container_name: ros1-runtime
+
+    # ROS1 多进程通信继续使用 Host 网络，和开发环境保持一致。
+    network_mode: host
+
+    # tini 负责 PID 1 的信号转发和僵尸进程回收。
+    init: true
+
+    # 首次 docker compose up -d 创建 Container 后，Docker daemon 重启时自动恢复运行。
+    restart: unless-stopped
+
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+
+    working_dir: /workspace
+
+    # 运行态不进入 sleep infinity，而是让 roslaunch 成为主业务进程。
+    # workspace 必须已经在开发 Container/CI 中完成 catkin build。
+    command:
+      - bash
+      - -lc
+      - |
+        set -e
+        if [ ! -f /workspace/ros_ws/devel/setup.bash ]; then
+          echo "ros_ws/devel/setup.bash not found; build ros1_hello and ros1_bringup first" >&2
+          exit 2
+        fi
+        source /workspace/.devcontainer/ros_env.bash
+        exec roslaunch ros1_bringup system.launch
+
+    # 给 roslaunch 和各 Node 留出正常关停时间，再由 Docker 强制结束。
+    stop_grace_period: 20s

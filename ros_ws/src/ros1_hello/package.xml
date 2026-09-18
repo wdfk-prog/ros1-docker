@@ -15,6 +15,7 @@
   <!-- roscpp = ROS1 C++ Client Library；std_msgs 提供 String 等标准消息。 -->
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
 
   <!-- 运行/导出生成消息时需要 message_runtime。 -->
   <build_export_depend>message_runtime</build_export_depend>
