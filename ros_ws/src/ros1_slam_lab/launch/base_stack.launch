@@ -1,4 +1,5 @@
 <launch>
+  <arg name="world_config" default="$(find ros1_slam_lab)/config/lab_world.yaml" />
   <arg name="truth_linear_scale" default="1.03" />
   <arg name="truth_angular_scale" default="1.00" />
 
@@ -38,7 +39,7 @@
         type="simple_laser_world.py"
         name="simple_laser_world"
         output="screen">
-    <rosparam command="load" file="$(find ros1_slam_lab)/config/lab_world.yaml" />
+    <rosparam command="load" file="$(arg world_config)" />
     <param name="truth_linear_scale" value="$(arg truth_linear_scale)" type="double" />
     <param name="truth_angular_scale" value="$(arg truth_angular_scale)" type="double" />
   </node>

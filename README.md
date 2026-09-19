@@ -80,7 +80,8 @@ ros1-docker/
 │   ├── 13_TF_tf2与移动机器人坐标系.md
 │   ├── 14_URDF_robot_state_publisher与joint_states.md
 │   ├── 15_robot_localization轮式里程计与IMU状态估计.md
-│   └── 16_SLAM与定位_激光雷达_地图_AMCL与map-odom.md
+│   ├── 16_SLAM与定位_激光雷达_地图_AMCL与map-odom.md
+│   └── 17_Navigation_move_base_costmap_planner与cmd_vel.md
 │
 ├── ros_ws/
 │   └── src/
@@ -143,22 +144,37 @@ ros1-docker/
 │       │   │   └── ekf_wheel_only.yaml
 │       │   └── launch/localization_lab.launch
 │       │
-│       └── ros1_slam_lab/
+│       ├── ros1_slam_lab/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   ├── config/
+│       │   │   ├── amcl.yaml
+│       │   │   ├── gmapping.yaml
+│       │   │   └── lab_world.yaml
+│       │   ├── launch/
+│       │   │   ├── amcl_localization.launch
+│       │   │   ├── base_stack.launch
+│       │   │   └── slam_mapping.launch
+│       │   ├── maps/
+│       │   │   ├── lab_map.pgm
+│       │   │   └── lab_map.yaml
+│       │   └── scripts/simple_laser_world.py
+│       │
+│       └── ros1_navigation_lab/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
 │           ├── config/
-│           │   ├── amcl.yaml
-│           │   ├── gmapping.yaml
-│           │   └── lab_world.yaml
-│           ├── launch/
-│           │   ├── amcl_localization.launch
-│           │   ├── base_stack.launch
-│           │   └── slam_mapping.launch
-│           ├── maps/
-│           │   ├── lab_map.pgm
-│           │   └── lab_map.yaml
-│           └── scripts/simple_laser_world.py
+│           │   ├── costmap_common.yaml
+│           │   ├── global_costmap.yaml
+│           │   ├── local_costmap.yaml
+│           │   ├── move_base.yaml
+│           │   ├── navfn.yaml
+│           │   ├── dwa_local_planner.yaml
+│           │   └── navigation_world.yaml
+│           ├── launch/navigation.launch
+│           └── rviz/navigation.rviz
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -181,6 +197,7 @@ ros1-docker/
 | 14 | `14_URDF_robot_state_publisher与joint_states.md` | 理解 URDF 的 link/joint 与 Xacro 的展开/参数化/宏复用，串联 `robot_description`、`/joint_states` 和 `robot_state_publisher` 自动生成机器人内部 `/tf` / `/tf_static` |
 | 15 | `15_robot_localization轮式里程计与IMU状态估计.md` | 理解 EKF 的 predict/correct、15 维状态、covariance、输入选择、时间与 frame，并让 `robot_localization` 从 `/odom/raw` + `/imu/data_raw` 生成 `/odometry/filtered` 和 `odom -> base_link` |
 | 16 | `16_SLAM与定位_激光雷达_地图_AMCL与map-odom.md` | 理解激光测距、2D 扫描角度与 3D 多线概念，跑通 `/scan + odom + TF -> GMapping -> /map + map -> odom` 和 `/map + /scan + odom + TF -> AMCL -> map -> odom` |
+| 17 | `17_Navigation_move_base_costmap_planner与cmd_vel.md` | 理解 global/local costmap、Static/Obstacle/Inflation layer、Navfn、DWA 与 `/cmd_vel`，并跑通 `localization -> costmap -> planner -> Driver` 的阶段 C 导航闭环 |
 
 ## 第一次启动
 

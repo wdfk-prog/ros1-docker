@@ -1,0 +1,38 @@
+# 第 17 章导航环境复用第 16 章墙体几何，并额外放入一段“建图后才出现”的临时障碍。
+# /map 仍使用第 16 章保存的 lab_map，因此这段障碍只会通过实时 /scan 进入 costmap。
+scan_topic: /scan
+cmd_vel_topic: /cmd_vel
+laser_frame_id: laser_link
+scan_rate_hz: 10.0
+integration_rate_hz: 100.0
+
+beam_count: 360
+angle_min_rad: -3.141592653589793
+range_min_m: 0.05
+range_max_m: 8.0
+
+laser_offset_x_m: 0.25
+laser_offset_y_m: 0.0
+laser_yaw_offset_rad: 0.0
+
+# 保留第 16 章 3% 里程计尺度差，让 AMCL 继续承担 map -> odom 的全局修正。
+truth_linear_scale: 1.03
+truth_angular_scale: 1.00
+
+initial_x_m: 0.0
+initial_y_m: 0.0
+initial_yaw_rad: 0.0
+
+segments:
+  # 与 lab_map 对应的固定墙体。
+  - [-4.0, -3.0,  4.0, -3.0]
+  - [ 4.0, -3.0,  4.0,  3.0]
+  - [ 4.0,  3.0, -4.0,  3.0]
+  - [-4.0,  3.0, -4.0, -3.0]
+  - [ 1.5, -3.0,  1.5,  0.8]
+  - [-2.5,  1.2,  1.0,  1.2]
+  - [-2.5, -1.0, -2.5,  1.2]
+
+  # 临时障碍：地图中不存在，但 360 度激光能看到。
+  # 从起点 (0, 0) 前往示例目标 (0, -2.2) 时，它会挡住直线路径。
+  - [-0.75, -1.0, 0.75, -1.0]

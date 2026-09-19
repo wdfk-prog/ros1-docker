@@ -1,0 +1,20 @@
+# 全局 costmap 以 map 为参考：既接收静态 /map，也叠加实时 /scan 障碍物。
+global_frame: map
+robot_base_frame: base_link
+update_frequency: 3.0
+publish_frequency: 1.0
+transform_tolerance: 0.30
+resolution: 0.05
+rolling_window: false
+track_unknown_space: true
+
+plugins:
+  - {name: static_layer, type: "costmap_2d::StaticLayer"}
+  - {name: obstacle_layer, type: "costmap_2d::ObstacleLayer"}
+  - {name: inflation_layer, type: "costmap_2d::InflationLayer"}
+
+static_layer:
+  enabled: true
+  map_topic: /map
+  subscribe_to_updates: false
+  track_unknown_space: true

@@ -28,6 +28,9 @@ RUN apt-get update && \
         ros-noetic-amcl \
         ros-noetic-diagnostic-msgs \
         ros-noetic-map-server \
+        ros-noetic-move-base \
+        ros-noetic-navfn \
+        ros-noetic-dwa-local-planner \
         ros-noetic-geometry-msgs \
         ros-noetic-nav-msgs \
         ros-noetic-robot-localization \

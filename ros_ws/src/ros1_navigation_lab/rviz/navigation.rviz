@@ -1,0 +1,85 @@
+Panels:
+  - Class: rviz/Displays
+    Name: Displays
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Name: Tool Properties
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.70
+      Class: rviz/Map
+      Enabled: true
+      Name: Static Map
+      Topic: /map
+    - Alpha: 0.45
+      Class: rviz/Map
+      Enabled: true
+      Name: Global Costmap
+      Topic: /move_base/global_costmap/costmap
+    - Alpha: 0.65
+      Class: rviz/Map
+      Enabled: true
+      Name: Local Costmap
+      Topic: /move_base/local_costmap/costmap
+    - Class: rviz/LaserScan
+      Enabled: true
+      Name: LaserScan
+      Topic: /scan
+      Style: Points
+      Size (m): 0.03
+      Decay Time: 0
+    - Class: rviz/RobotModel
+      Enabled: true
+      Name: RobotModel
+      Robot Description: robot_description
+    - Class: rviz/TF
+      Enabled: true
+      Name: TF
+      Show Axes: true
+      Show Names: true
+      Show Arrows: true
+    - Class: rviz/Path
+      Enabled: true
+      Name: Global Plan
+      Topic: /move_base/NavfnROS/plan
+      Line Style: Lines
+      Line Width: 0.03
+    - Class: rviz/Path
+      Enabled: true
+      Name: Local Plan
+      Topic: /move_base/DWAPlannerROS/local_plan
+      Line Style: Lines
+      Line Width: 0.05
+    - Class: rviz/PoseArray
+      Enabled: true
+      Name: AMCL Particle Cloud
+      Topic: /particlecloud
+      Shape: Arrow (Flat)
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: map
+    Frame Rate: 30
+  Tools:
+    - Class: rviz/Interact
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Topic: /initialpose
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+  Views:
+    Current:
+      Class: rviz/TopDownOrtho
+      Name: TopDown
+      Scale: 55
+      X: 0
+      Y: 0
+Window Geometry:
+  Height: 900
+  Width: 1500
+  X: 40
+  Y: 40
