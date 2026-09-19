@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros1_description_lab</name>
+  <version>0.0.1</version>
+  <description>ROS1 URDF, Xacro, and robot_state_publisher learning package for a differential-drive AGV.</description>
+  <maintainer email="dev@example.com">dev</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros1_driver_lab</exec_depend>
+  <exec_depend>ros1_tf_lab</exec_depend>
+  <exec_depend>roslaunch</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>xacro</exec_depend>
+</package>

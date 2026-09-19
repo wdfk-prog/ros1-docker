@@ -28,7 +28,10 @@ RUN apt-get update && \
         ros-noetic-diagnostic-msgs \
         ros-noetic-geometry-msgs \
         ros-noetic-nav-msgs \
+        ros-noetic-robot-state-publisher \
         ros-noetic-sensor-msgs \
+        ros-noetic-urdf \
+        ros-noetic-xacro \
         ros-noetic-tf2-ros \
         ros-noetic-tf2-tools \
         tree \

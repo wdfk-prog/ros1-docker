@@ -77,7 +77,8 @@ ros1-docker/
 │   ├── 05_阅读roscpp源码并使用F12_F5调试.md
 │   ├── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
 │   ├── 12_ROS消息与驱动数据契约_差速底盘Driver.md
-│   └── 13_TF_tf2与移动机器人坐标系.md
+│   ├── 13_TF_tf2与移动机器人坐标系.md
+│   └── 14_URDF_robot_state_publisher与joint_states.md
 │
 ├── ros_ws/
 │   └── src/
@@ -111,15 +112,25 @@ ros1-docker/
 │       │   ├── launch/chassis_lab.launch
 │       │   └── src/chassis_driver_node.cpp
 │       │
-│       └── ros1_tf_lab/
+│       ├── ros1_tf_lab/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   ├── config/tf_lab.yaml
+│       │   ├── launch/tf_lab.launch
+│       │   └── src/
+│       │       ├── odom_tf_broadcaster.cpp
+│       │       └── tf_query_node.cpp
+│       │
+│       └── ros1_description_lab/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           ├── config/tf_lab.yaml
-│           ├── launch/tf_lab.launch
-│           └── src/
-│               ├── odom_tf_broadcaster.cpp
-│               └── tf_query_node.cpp
+│           ├── launch/description_lab.launch
+│           └── urdf/
+│               ├── agv.urdf
+│               ├── agv.urdf.xacro
+│               └── macros/components.xacro
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -139,6 +150,7 @@ ros1-docker/
 | 5 | `05_阅读roscpp源码并使用F12_F5调试.md` | 能阅读 `ros::init()` 源码，并用 GDB/F5 进入 roscpp |
 | 12 | `12_ROS消息与驱动数据契约_差速底盘Driver.md` | 理解 Twist、JointState、Imu、Odometry、covariance，并完成差速底盘正/逆运动学 |
 | 13 | `13_TF_tf2与移动机器人坐标系.md` | 区分 `/odom` 与 `odom` frame，理解刚体变换、BufferCore/TimeCache、查链/插值/extrapolation，并建立 `map -> odom -> base_link -> sensor` TF tree |
+| 14 | `14_URDF_robot_state_publisher与joint_states.md` | 理解 URDF 的 link/joint 与 Xacro 的展开/参数化/宏复用，串联 `robot_description`、`/joint_states` 和 `robot_state_publisher` 自动生成机器人内部 `/tf` / `/tf_static` |
 
 ## 第一次启动
 

@@ -1,0 +1,32 @@
+<launch>
+  <arg name="use_camera" default="true" />
+
+  <!-- 第 12 章 Driver 继续作为 /joint_states 与 /odom 的数据 owner。 -->
+  <include file="$(find ros1_driver_lab)/launch/chassis_lab.launch" />
+
+  <!-- 第 13 章的 owner 关系保持不变：/odom -> odom -> base_link。 -->
+  <node pkg="ros1_tf_lab"
+        type="odom_tf_broadcaster"
+        name="odom_tf_broadcaster"
+        output="screen">
+    <param name="odom_topic" value="/odom" />
+  </node>
+
+  <!-- 全局定位尚未进入本系列，先用恒等静态变换占位 map -> odom。 -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="map_to_odom_static"
+        args="0 0 0 0 0 0 map odom" />
+
+  <!-- Xacro 先展开为标准 URDF XML；robot_state_publisher 只读取展开后的 robot_description。 -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find ros1_description_lab)/urdf/agv.urdf.xacro' use_camera:=$(arg use_camera)" />
+
+  <node pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        name="robot_state_publisher"
+        output="screen">
+    <param name="publish_frequency" value="20.0" />
+    <param name="use_tf_static" value="true" />
+  </node>
+</launch>

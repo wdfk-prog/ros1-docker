@@ -239,7 +239,7 @@ private:
         command.right_wheel_velocity_rad_s = right_linear_m_s / wheel_radius_;
 
         // 本章故意不实现命令超时/watchdog。真实底盘不能无限保持最后一条速度命令，
-        // 这部分会在第 14 章与 offline / watchdog / 恢复策略一起处理。
+        // 这部分属于 Driver 可靠性专项，不在当前 Navigation 学习主线展开。
         device_->writeWheelCommand(command);
 
         ROS_INFO_THROTTLE(1.0,
