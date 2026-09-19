@@ -1,0 +1,50 @@
+<launch>
+  <arg name="filter_node" default="ekf_localization_node" />
+  <arg name="config_file" default="$(find ros1_localization_lab)/config/ekf_wheel_imu.yaml" />
+  <arg name="use_camera" default="true" />
+  <arg name="imu_angular_velocity_variance" default="0.001" />
+  <arg name="odom_twist_linear_variance" default="0.01" />
+
+  <!--
+    复用第 12 章 Driver，但在本章把原始里程计改名为 /odom/raw。
+    /odom/raw 只是状态估计器输入；最终 odom -> base_link TF 由 robot_localization 独占发布。
+  -->
+  <node pkg="ros1_driver_lab"
+        type="chassis_driver_node"
+        name="chassis_driver_node"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_driver_lab)/config/chassis_lab.yaml" />
+    <param name="odom_topic" value="/odom/raw" />
+    <param name="imu_topic" value="/imu/data_raw" />
+    <param name="imu_angular_velocity_variance"
+           value="$(arg imu_angular_velocity_variance)"
+           type="double" />
+    <param name="odom_twist_linear_variance"
+           value="$(arg odom_twist_linear_variance)"
+           type="double" />
+  </node>
+
+  <!--
+    robot_localization 需要知道 imu_link 到 base_link 的静态几何关系。
+    继续复用第 14 章 Xacro 模型，但不启动第 13 章 odom_tf_broadcaster，避免 TF owner 冲突。
+  -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find ros1_description_lab)/urdf/agv.urdf.xacro' use_camera:=$(arg use_camera)" />
+
+  <node pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        name="robot_state_publisher"
+        output="screen">
+    <param name="publish_frequency" value="20.0" />
+    <param name="use_tf_static" value="true" />
+  </node>
+
+  <!-- world_frame=odom + publish_tf=true：当前 EKF/UKF 成为 odom -> base_link 的唯一 owner。 -->
+  <node pkg="robot_localization"
+        type="$(arg filter_node)"
+        name="$(arg filter_node)"
+        clear_params="true"
+        output="screen">
+    <rosparam command="load" file="$(arg config_file)" />
+  </node>
+</launch>

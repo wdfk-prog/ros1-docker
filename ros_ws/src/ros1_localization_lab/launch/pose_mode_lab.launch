@@ -1,0 +1,17 @@
+<launch>
+  <arg name="filter_node" default="ekf_localization_node" />
+  <arg name="config_file"
+       default="$(find ros1_localization_lab)/config/ekf_pose_relative.yaml" />
+
+  <!--
+    该 launch 只用于观察 differential / relative 对 pose 输入的处理。
+    它不启动底盘 Driver，避免其它 odometry/IMU 输入干扰实验结果。
+  -->
+  <node pkg="robot_localization"
+        type="$(arg filter_node)"
+        name="pose_mode_filter"
+        clear_params="true"
+        output="screen">
+    <rosparam command="load" file="$(arg config_file)" />
+  </node>
+</launch>

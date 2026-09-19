@@ -1,0 +1,26 @@
+# relative 演示：/demo_pose 仍然按 pose 融合，但始终以该传感器的首帧 pose 作为参考变换。
+# 因此首帧会成为当前传感器的局部零点，后续值保持 pose 语义而不会转换为速度。
+frequency: 20.0
+sensor_timeout: 2.00
+two_d_mode: true
+
+transform_time_offset: 0.0
+transform_timeout: 0.0
+print_diagnostics: true
+publish_tf: true
+publish_acceleration: false
+
+map_frame: map
+odom_frame: odom
+base_link_frame: base_link
+world_frame: odom
+
+pose0: /demo_pose
+pose0_config: [true,  true,  false,
+               false, false, true,
+               false, false, false,
+               false, false, false,
+               false, false, false]
+pose0_queue_size: 10
+pose0_differential: false
+pose0_relative: true

@@ -2712,9 +2712,9 @@ Xacro 调试必须先看展开结果，再看 robot_description，最后才看 T
 
 到这里，机器人自身几何关系已经从“零散 TF 参数”升级成“一份模型 + 一份状态输入”。
 
-下一章进入 Navigation 传感器接口，开始研究：
+下一章进入 `robot_localization`，开始研究：
 
-> 即使 `laser_link` 已经存在、TF tree 也连通，`sensor_msgs/LaserScan` / `Range` 还必须满足哪些消息字段、时间和 frame 契约，costmap / SLAM 才真正能够消费？
+> 第 12 章已经有 `/odom` 和 `/imu/data_raw`，第 13～14 章也已经建立 TF 与机器人几何关系；这些观测怎样被状态估计器选择、变换和融合，并由谁最终发布 `odom -> base_link`？
 
 这就是第 15 章的入口。
 

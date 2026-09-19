@@ -1,0 +1,41 @@
+# ROS教程15默认配置：轮式里程计只提供车体前向速度 vx，IMU 提供绕 Z 轴角速度 vyaw。
+# 这样可以避免把同一套编码器积分得到的 pose、yaw 和 twist 全部重复作为独立观测送入滤波器。
+frequency: 30.0
+sensor_timeout: 0.20
+
+# 当前 AGV 按平面机器人处理：忽略 z / roll / pitch 及其速度和加速度。
+two_d_mode: true
+
+transform_time_offset: 0.0
+transform_timeout: 0.0
+print_diagnostics: true
+publish_tf: true
+publish_acceleration: false
+
+map_frame: map
+odom_frame: odom
+base_link_frame: base_link
+world_frame: odom
+
+# 第 12 章 Driver 在本 launch 中被改到 /odom/raw。
+odom0: /odom/raw
+odom0_config: [false, false, false,
+               false, false, false,
+               true,  false, false,
+               false, false, false,
+               false, false, false]
+odom0_queue_size: 10
+odom0_differential: false
+odom0_relative: false
+
+# 当前教学 IMU 没有可信 orientation，只融合 angular_velocity.z。
+imu0: /imu/data_raw
+imu0_config: [false, false, false,
+              false, false, false,
+              false, false, false,
+              false, false, true,
+              false, false, false]
+imu0_queue_size: 10
+imu0_differential: false
+imu0_relative: false
+imu0_remove_gravitational_acceleration: false

@@ -1,0 +1,26 @@
+# differential 演示：/demo_pose 的 X、Y、yaw 不作为绝对 pose 直接融合。
+# robot_localization 会使用相邻两帧 pose 的变化，并将该变化按时间转换为速度观测。
+frequency: 20.0
+sensor_timeout: 2.00
+two_d_mode: true
+
+transform_time_offset: 0.0
+transform_timeout: 0.0
+print_diagnostics: true
+publish_tf: true
+publish_acceleration: false
+
+map_frame: map
+odom_frame: odom
+base_link_frame: base_link
+world_frame: odom
+
+pose0: /demo_pose
+pose0_config: [true,  true,  false,
+               false, false, true,
+               false, false, false,
+               false, false, false,
+               false, false, false]
+pose0_queue_size: 10
+pose0_differential: true
+pose0_relative: false

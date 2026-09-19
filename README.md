@@ -78,7 +78,8 @@ ros1-docker/
 │   ├── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
 │   ├── 12_ROS消息与驱动数据契约_差速底盘Driver.md
 │   ├── 13_TF_tf2与移动机器人坐标系.md
-│   └── 14_URDF_robot_state_publisher与joint_states.md
+│   ├── 14_URDF_robot_state_publisher与joint_states.md
+│   └── 15_robot_localization轮式里程计与IMU状态估计.md
 │
 ├── ros_ws/
 │   └── src/
@@ -122,15 +123,24 @@ ros1-docker/
 │       │       ├── odom_tf_broadcaster.cpp
 │       │       └── tf_query_node.cpp
 │       │
-│       └── ros1_description_lab/
+│       ├── ros1_description_lab/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   ├── launch/description_lab.launch
+│       │   └── urdf/
+│       │       ├── agv.urdf
+│       │       ├── agv.urdf.xacro
+│       │       └── macros/components.xacro
+│       │
+│       └── ros1_localization_lab/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           ├── launch/description_lab.launch
-│           └── urdf/
-│               ├── agv.urdf
-│               ├── agv.urdf.xacro
-│               └── macros/components.xacro
+│           ├── config/
+│           │   ├── ekf_wheel_imu.yaml
+│           │   └── ekf_wheel_only.yaml
+│           └── launch/localization_lab.launch
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -151,6 +161,7 @@ ros1-docker/
 | 12 | `12_ROS消息与驱动数据契约_差速底盘Driver.md` | 理解 Twist、JointState、Imu、Odometry、covariance，并完成差速底盘正/逆运动学 |
 | 13 | `13_TF_tf2与移动机器人坐标系.md` | 区分 `/odom` 与 `odom` frame，理解刚体变换、BufferCore/TimeCache、查链/插值/extrapolation，并建立 `map -> odom -> base_link -> sensor` TF tree |
 | 14 | `14_URDF_robot_state_publisher与joint_states.md` | 理解 URDF 的 link/joint 与 Xacro 的展开/参数化/宏复用，串联 `robot_description`、`/joint_states` 和 `robot_state_publisher` 自动生成机器人内部 `/tf` / `/tf_static` |
+| 15 | `15_robot_localization轮式里程计与IMU状态估计.md` | 理解 EKF 的 predict/correct、15 维状态、covariance、输入选择、时间与 frame，并让 `robot_localization` 从 `/odom/raw` + `/imu/data_raw` 生成 `/odometry/filtered` 和 `odom -> base_link` |
 
 ## 第一次启动
 
