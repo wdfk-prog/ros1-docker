@@ -1,0 +1,45 @@
+<launch>
+  <arg name="query_mode" default="latest" />
+  <arg name="query_offset_sec" default="0.0" />
+
+  <!-- 复用第 12 章 Driver：它继续只发布 /odom 等消息，不直接负责 TF。 -->
+  <include file="$(find ros1_driver_lab)/launch/chassis_lab.launch" />
+
+  <!--
+    教学环境暂时用恒等变换补齐 map -> odom。
+    后续 SLAM / AMCL / localization 章节会由真正的全局定位模块接管这条变换。
+  -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="map_to_odom_static"
+        args="0 0 0 0 0 0 map odom" />
+
+  <!-- 传感器相对底盘的安装位姿属于静态几何关系。 -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_to_laser_static"
+        args="0.25 0.0 0.15 0 0 0 base_link laser_link" />
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_to_imu_static"
+        args="0.0 0.0 0.10 0 0 0 base_link imu_link" />
+
+  <!-- 把第 12 章 /odom 中的 pose 映射成动态 odom -> base_link TF。 -->
+  <node pkg="ros1_tf_lab"
+        type="odom_tf_broadcaster"
+        name="odom_tf_broadcaster"
+        output="screen">
+    <param name="odom_topic" value="/odom" />
+  </node>
+
+  <!-- 主动查询 map <- laser_link，用于学习 latest / now / extrapolation。 -->
+  <node pkg="ros1_tf_lab"
+        type="tf_query_node"
+        name="tf_query_node"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_tf_lab)/config/tf_lab.yaml" />
+    <param name="query_mode" value="$(arg query_mode)" />
+    <param name="query_offset_sec" value="$(arg query_offset_sec)" />
+  </node>
+</launch>

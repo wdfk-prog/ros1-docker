@@ -76,7 +76,8 @@ ros1-docker/
 │   ├── 04_使用VSCode_RemoteSSH与DevContainer.md
 │   ├── 05_阅读roscpp源码并使用F12_F5调试.md
 │   ├── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
-│   └── 12_ROS消息与驱动数据契约_差速底盘Driver.md
+│   ├── 12_ROS消息与驱动数据契约_差速底盘Driver.md
+│   └── 13_TF_tf2与移动机器人坐标系.md
 │
 ├── ros_ws/
 │   └── src/
@@ -102,13 +103,23 @@ ros1-docker/
 │       │   ├── README.md
 │       │   └── launch/system.launch
 │       │
-│       └── ros1_driver_lab/
+│       ├── ros1_driver_lab/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   ├── config/chassis_lab.yaml
+│       │   ├── launch/chassis_lab.launch
+│       │   └── src/chassis_driver_node.cpp
+│       │
+│       └── ros1_tf_lab/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           ├── config/chassis_lab.yaml
-│           ├── launch/chassis_lab.launch
-│           └── src/chassis_driver_node.cpp
+│           ├── config/tf_lab.yaml
+│           ├── launch/tf_lab.launch
+│           └── src/
+│               ├── odom_tf_broadcaster.cpp
+│               └── tf_query_node.cpp
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -127,6 +138,7 @@ ros1-docker/
 | 4 | `04_使用VSCode_RemoteSSH与DevContainer.md` | 理解 Host IDE 与 Container IDE 的边界，建立稳定的 IntelliSense/F12 工作流 |
 | 5 | `05_阅读roscpp源码并使用F12_F5调试.md` | 能阅读 `ros::init()` 源码，并用 GDB/F5 进入 roscpp |
 | 12 | `12_ROS消息与驱动数据契约_差速底盘Driver.md` | 理解 Twist、JointState、Imu、Odometry、covariance，并完成差速底盘正/逆运动学 |
+| 13 | `13_TF_tf2与移动机器人坐标系.md` | 区分 `/odom` 与 `odom` frame，理解刚体变换、BufferCore/TimeCache、查链/插值/extrapolation，并建立 `map -> odom -> base_link -> sensor` TF tree |
 
 ## 第一次启动
 

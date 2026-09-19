@@ -1,0 +1,9 @@
+target_frame: map
+source_frame: laser_link
+
+# latest: 使用 ros::Time(0)，查询整条 TF 链最新的共同可用时刻。
+# now:    使用 ros::Time::now() + query_offset_sec，用于观察精确时间查询和 extrapolation。
+query_mode: latest
+query_offset_sec: 0.0
+query_rate_hz: 2.0
+timeout_sec: 0.05

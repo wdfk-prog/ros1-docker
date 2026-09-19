@@ -29,6 +29,8 @@ RUN apt-get update && \
         ros-noetic-geometry-msgs \
         ros-noetic-nav-msgs \
         ros-noetic-sensor-msgs \
+        ros-noetic-tf2-ros \
+        ros-noetic-tf2-tools \
         tree \
         less \
         vim \
