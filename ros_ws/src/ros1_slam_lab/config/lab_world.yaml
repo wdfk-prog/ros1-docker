@@ -1,0 +1,36 @@
+# 教学环境采用米、弧度，并让 laser_link 与第 14 章 URDF 保持同一安装位置。
+scan_topic: /scan
+cmd_vel_topic: /cmd_vel
+laser_frame_id: laser_link
+scan_rate_hz: 10.0
+integration_rate_hz: 100.0
+
+# 360 个方向覆盖一整圈。angle_max 由脚本根据 beam_count 计算，避免 -pi 与 +pi 重复采同一条射线。
+beam_count: 360
+angle_min_rad: -3.141592653589793
+range_min_m: 0.05
+range_max_m: 8.0
+
+# 与 agv.urdf.xacro 中 base_link -> laser_link 的平移保持一致。
+laser_offset_x_m: 0.25
+laser_offset_y_m: 0.0
+laser_yaw_offset_rad: 0.0
+
+# 这里故意模拟 3% 的轮式里程计尺度误差：物理运动比 odom 估计更远。
+# Driver / EKF 仍按 /cmd_vel 的名义速度产生 odom；激光观测按 truth_*_scale 移动。
+truth_linear_scale: 1.03
+truth_angular_scale: 1.00
+
+initial_x_m: 0.0
+initial_y_m: 0.0
+initial_yaw_rad: 0.0
+
+# 每项为 [x1, y1, x2, y2]，与 maps/lab_map.pgm 中的黑色障碍物保持一致。
+segments:
+  - [-4.0, -3.0,  4.0, -3.0]
+  - [ 4.0, -3.0,  4.0,  3.0]
+  - [ 4.0,  3.0, -4.0,  3.0]
+  - [-4.0,  3.0, -4.0, -3.0]
+  - [ 1.5, -3.0,  1.5,  0.8]
+  - [-2.5,  1.2,  1.0,  1.2]
+  - [-2.5, -1.0, -2.5,  1.2]

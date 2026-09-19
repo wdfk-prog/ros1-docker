@@ -25,15 +25,20 @@ RUN apt-get update && \
         ros-noetic-rqt-topic \
         ros-noetic-rosbag \
         ros-noetic-rostest \
+        ros-noetic-amcl \
         ros-noetic-diagnostic-msgs \
+        ros-noetic-map-server \
         ros-noetic-geometry-msgs \
         ros-noetic-nav-msgs \
         ros-noetic-robot-localization \
+        ros-noetic-rviz \
+        ros-noetic-slam-gmapping \
         ros-noetic-robot-state-publisher \
         ros-noetic-sensor-msgs \
         ros-noetic-urdf \
         ros-noetic-xacro \
         ros-noetic-tf2-ros \
+        ros-noetic-teleop-twist-keyboard \
         ros-noetic-tf2-tools \
         tree \
         less \

@@ -1,0 +1,19 @@
+<launch>
+  <arg name="truth_linear_scale" default="1.03" />
+  <arg name="truth_angular_scale" default="1.00" />
+
+  <include file="$(find ros1_slam_lab)/launch/base_stack.launch">
+    <arg name="truth_linear_scale" value="$(arg truth_linear_scale)" />
+    <arg name="truth_angular_scale" value="$(arg truth_angular_scale)" />
+  </include>
+
+  <!-- GMapping 消费 /scan + TF(odom -> base_link -> laser_link)，并发布 /map 与 map -> odom。 -->
+  <node pkg="gmapping"
+        type="slam_gmapping"
+        name="slam_gmapping"
+        clear_params="true"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_slam_lab)/config/gmapping.yaml" />
+    <remap from="scan" to="/scan" />
+  </node>
+</launch>

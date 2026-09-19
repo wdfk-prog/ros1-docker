@@ -1,0 +1,25 @@
+# TF ownership：robot_localization 提供 odom -> base_link；GMapping 只接管 map -> odom。
+base_frame: base_link
+odom_frame: odom
+map_frame: map
+
+map_update_interval: 1.0
+transform_publish_period: 0.05
+throttle_scans: 1
+
+# 教学激光 range_max=8 m；建图有效距离略小于硬上限。
+maxRange: 8.0
+maxUrange: 7.5
+
+# 让小环境中的位移/转角较快触发扫描更新，便于观察。
+linearUpdate: 0.10
+angularUpdate: 0.10
+temporalUpdate: 1.0
+particles: 30
+
+# 5 cm occupancy grid。
+delta: 0.05
+xmin: -5.0
+ymin: -4.0
+xmax: 5.0
+ymax: 4.0

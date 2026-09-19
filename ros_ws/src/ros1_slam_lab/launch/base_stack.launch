@@ -1,0 +1,45 @@
+<launch>
+  <arg name="truth_linear_scale" default="1.03" />
+  <arg name="truth_angular_scale" default="1.00" />
+
+  <!-- 第 12 章教学 Driver 继续只负责原始消息，不发布 TF。 -->
+  <node pkg="ros1_driver_lab"
+        type="chassis_driver_node"
+        name="chassis_driver_node"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_driver_lab)/config/chassis_lab.yaml" />
+    <param name="odom_topic" value="/odom/raw" />
+    <param name="imu_topic" value="/imu/data_raw" />
+  </node>
+
+  <!-- 第 14 章模型提供 base_link -> laser_link / imu_link 等机器人内部 TF。 -->
+  <param name="robot_description"
+         command="$(find xacro)/xacro '$(find ros1_description_lab)/urdf/agv.urdf.xacro'" />
+
+  <node pkg="robot_state_publisher"
+        type="robot_state_publisher"
+        name="robot_state_publisher"
+        output="screen">
+    <param name="publish_frequency" value="20.0" />
+    <param name="use_tf_static" value="true" />
+  </node>
+
+  <!-- 第 15 章 EKF 继续独占 odom -> base_link。 -->
+  <node pkg="robot_localization"
+        type="ekf_localization_node"
+        name="ekf_localization_node"
+        clear_params="true"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_localization_lab)/config/ekf_wheel_only.yaml" />
+  </node>
+
+  <!-- 独立教学环境根据 /cmd_vel 生成与墙体几何一致的 /scan。 -->
+  <node pkg="ros1_slam_lab"
+        type="simple_laser_world.py"
+        name="simple_laser_world"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_slam_lab)/config/lab_world.yaml" />
+    <param name="truth_linear_scale" value="$(arg truth_linear_scale)" type="double" />
+    <param name="truth_angular_scale" value="$(arg truth_angular_scale)" type="double" />
+  </node>
+</launch>

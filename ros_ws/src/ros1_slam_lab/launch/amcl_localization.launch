@@ -1,0 +1,27 @@
+<launch>
+  <arg name="map_yaml" default="$(find ros1_slam_lab)/maps/lab_map.yaml" />
+  <arg name="truth_linear_scale" default="1.03" />
+  <arg name="truth_angular_scale" default="1.00" />
+
+  <include file="$(find ros1_slam_lab)/launch/base_stack.launch">
+    <arg name="truth_linear_scale" value="$(arg truth_linear_scale)" />
+    <arg name="truth_angular_scale" value="$(arg truth_angular_scale)" />
+  </include>
+
+  <!-- map_server 只负责把静态地图装载成 /map 与 static_map 服务，不发布 map -> odom。 -->
+  <node pkg="map_server"
+        type="map_server"
+        name="map_server"
+        args="$(arg map_yaml)"
+        output="screen" />
+
+  <!-- AMCL 消费已有地图、/scan 与 odom TF，并独占 map -> odom。 -->
+  <node pkg="amcl"
+        type="amcl"
+        name="amcl"
+        clear_params="true"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_slam_lab)/config/amcl.yaml" />
+    <remap from="scan" to="/scan" />
+  </node>
+</launch>
