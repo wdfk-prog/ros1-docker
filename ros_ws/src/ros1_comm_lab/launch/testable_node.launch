@@ -1,8 +1,10 @@
 <launch>
+  <!-- MessageProcessor 的三个业务参数。 -->
   <arg name="multiplier" default="2"/>
   <arg name="bias" default="3"/>
   <arg name="max_input" default="100"/>
 
+  <!-- testable_node 把纯 MessageProcessor 包装成 Topic 输入/输出 Node。 -->
   <node pkg="ros1_comm_lab"
         type="testable_node"
         name="testable_node"

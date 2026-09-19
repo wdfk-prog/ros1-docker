@@ -15,9 +15,10 @@ add_message_files(
   HelloStatus.msg
 )
 
-# 根据 .msg 生成 C++/Python 等语言绑定。
+# 配置 .msg 的代码生成规则；真正的 C++/Python 等生成文件会在后续构建 target 时产生。
 generate_messages()
 
+# 导出运行/下游 package 需要的依赖。message_runtime 对应上面生成出来的消息代码。
 catkin_package(
   CATKIN_DEPENDS message_runtime roscpp std_msgs std_srvs
 )
@@ -50,6 +51,7 @@ add_executable(custom_msg_publisher
   src/custom_msg_publisher.cpp
 )
 
+# Publisher include 了由 HelloStatus.msg 生成的头文件，因此必须等消息生成完成再编译。
 add_dependencies(custom_msg_publisher
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
@@ -63,6 +65,7 @@ add_executable(custom_msg_subscriber
   src/custom_msg_subscriber.cpp
 )
 
+# Subscriber 同样依赖 HelloStatus 生成目标。
 add_dependencies(custom_msg_subscriber
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}

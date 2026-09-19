@@ -1,8 +1,11 @@
+# Goal：client 希望 server 最终数到多少。
 uint32 target
 ---
+# Result：Action 进入终态时一次性返回的最终结果。
 bool completed
 uint32 final_count
 string message
 ---
+# Feedback：任务执行过程中可以重复发布，用来报告当前进度。
 uint32 current_count
 float32 progress

@@ -6,6 +6,7 @@
 
 namespace
 {
+// 依赖 READY 之后才启用的业务回调。这个实验用 /chatter 代表“正常业务数据”。
 void chatterCallback(const std_msgs::String::ConstPtr& message)
 {
     ROS_INFO("[ready_client] business callback: %s", message->data.c_str());
@@ -16,6 +17,8 @@ int main(int argc, char** argv)
 {
     ros::init(argc, argv, "ready_client");
     ros::NodeHandle nh;
+
+    // "~" 创建 private NodeHandle；下面的 wait_timeout 实际参数名是 ~wait_timeout。
     ros::NodeHandle pnh("~");
 
     double wait_timeout = 10.0;
@@ -31,6 +34,7 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    // std_srvs/Trigger 没有请求字段，只返回 success + message，很适合表达简单 READY 查询。
     ros::ServiceClient ready_client = nh.serviceClient<std_srvs::Trigger>(ready_service_name);
     std_srvs::Trigger ready_request;
     if (!ready_client.call(ready_request) || !ready_request.response.success)

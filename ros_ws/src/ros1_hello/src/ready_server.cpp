@@ -3,6 +3,8 @@
 
 namespace
 {
+// Trigger Service 的 server callback。返回 true 表示这次 RPC 已被正常处理；
+// response.success 才是这个示例定义的“业务 READY”状态。
 bool handleReady(std_srvs::Trigger::Request&, std_srvs::Trigger::Response& response)
 {
     response.success = true;
@@ -17,6 +19,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
 
+    // 用可配置的延时模拟真实驱动初始化，例如打开设备、读取配置、等待硬件稳定。
     double startup_delay = 3.0;
     pnh.param("startup_delay", startup_delay, 3.0);
 

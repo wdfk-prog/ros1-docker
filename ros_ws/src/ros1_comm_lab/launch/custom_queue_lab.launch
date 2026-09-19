@@ -1,11 +1,14 @@
 <launch>
+  <!-- launch 的 arg 是“启动文件参数”，可在命令行用 queue_size:=... 覆盖。 -->
   <arg name="queue_size" default="100"/>
   <arg name="driver_delay" default="2.0"/>
 
+  <!-- 启动 custom_queue_lab Node，用来比较默认 CallbackQueue 与自定义 CallbackQueue。 -->
   <node pkg="ros1_comm_lab"
         type="custom_queue_lab"
         name="custom_queue_lab"
         output="screen">
+    <!-- <param> 写入该 Node 的 private 参数空间，C++ 中通过 pnh("~") 读取。 -->
     <param name="queue_size" value="$(arg queue_size)"/>
     <param name="driver_delay" value="$(arg driver_delay)"/>
   </node>

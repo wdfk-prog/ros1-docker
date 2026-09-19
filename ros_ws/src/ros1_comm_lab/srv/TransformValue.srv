@@ -1,5 +1,7 @@
+# Request：client 发给 server 的输入值。
 uint32 input
 ---
+# Response：一次同步 RPC 完成后返回给 client。
 bool success
 uint32 output
 string message

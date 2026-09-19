@@ -10,6 +10,7 @@
 namespace
 {
 
+// 从 private namespace 读取非负整数参数，并统一做边界检查。
 bool readNonNegativeParam(
     ros::NodeHandle& pnh,
     const std::string& name,
@@ -57,9 +58,11 @@ public:
             return;
         }
 
+        // 业务计算放进独立 MessageProcessor；Service callback 只负责 ROS 请求/响应适配。
         processor_ = std::make_unique<ros1_comm_lab::MessageProcessor>(
             multiplier, bias, max_input);
 
+        // advertiseService() 把 Service 名和成员函数 callback 注册到 ROS Master/CallbackQueue。
         service_ = nh_.advertiseService(
             service_name_,
             &TransformServiceServer::handleRequest,
@@ -85,6 +88,7 @@ private:
         ros1_comm_lab::TransformValue::Request& request,
         ros1_comm_lab::TransformValue::Response& response)
     {
+        // 人为阻塞用于观察“同步 Service 会占用处理它的 callback 线程”这一行为。
         if (response_delay_ > 0.0)
         {
             ros::WallDuration(response_delay_).sleep();
@@ -93,7 +97,8 @@ private:
         uint32_t output = 0;
         if (!processor_->process(request.input, output))
         {
-            // The RPC completed normally; expose processor rejection in the response instead of transport status.
+            // RPC 传输本身已经成功到达 server，因此 callback 仍返回 true；
+            // “输入不合法”属于业务失败，通过 response.success/message 告诉 client。
             response.success = false;
             response.output = 0;
             response.message = "input violates processor constraints";

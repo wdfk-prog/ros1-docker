@@ -14,6 +14,7 @@
 namespace
 {
 
+// 日志打印线程 ID，用来直观看不同 Spinner 模式是否让 callback 并发执行。
 std::string currentThreadId()
 {
     std::ostringstream stream;
@@ -41,11 +42,14 @@ public:
         pnh_.param<std::string>("slow_topic", slow_topic_, "/comm_lab/slow");
         pnh_.param<std::string>("fast_topic", fast_topic_, "/comm_lab/fast");
 
+        // SubscribeOptions 比普通 nh.subscribe() 暴露更多订阅配置。
+        // 这里专门用于演示同一个 Subscriber 是否允许多个 callback 并发进入。
         ros::SubscribeOptions slow_options;
         slow_options.init<std_msgs::UInt32>(
             slow_topic_,
             queue_size_,
             boost::bind(&SpinnerLab::slowCallback, this, boost::placeholders::_1));
+        // false 时，同一 Subscriber 的消息 callback 保持串行；true 时允许并发执行。
         slow_options.allow_concurrent_callbacks = allow_concurrent_callbacks_;
 
         slow_subscriber_ = nh_.subscribe(slow_options);
@@ -63,6 +67,7 @@ public:
     }
 
 private:
+    // 慢回调用 WallDuration 模拟耗时工作，便于观察它是否阻塞其它 callback。
     void slowCallback(const std_msgs::UInt32::ConstPtr& msg)
     {
         const uint64_t call_id = ++slow_call_id_;
@@ -81,6 +86,7 @@ private:
             << " thread=" << thread_id);
     }
 
+    // 快回调不 sleep；如果它仍明显延迟，说明当前 Spinner/队列模型发生了串行阻塞。
     void fastCallback(const std_msgs::UInt32::ConstPtr& msg)
     {
         const uint64_t call_id = ++fast_call_id_;
@@ -115,6 +121,7 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
 
+    // spinner_mode 用同一份 Node 切换多种 callback 消费模型，便于比较行为。
     std::string spinner_mode;
     pnh.param<std::string>("spinner_mode", spinner_mode, "spin");
 
@@ -135,6 +142,7 @@ int main(int argc, char** argv)
 
     if (spinner_mode == "spin")
     {
+        // 最常见写法：当前线程单线程消费默认 CallbackQueue。
         ros::spin();
     }
     else if (spinner_mode == "single")
@@ -144,12 +152,14 @@ int main(int argc, char** argv)
     }
     else if (spinner_mode == "multi")
     {
+        // MultiThreadedSpinner 阻塞当前线程，同时用多个 worker 消费默认队列。
         ros::MultiThreadedSpinner spinner(
             static_cast<uint32_t>(spinner_threads));
         spinner.spin();
     }
     else if (spinner_mode == "async")
     {
+        // AsyncSpinner 在后台线程消费 callback；当前线程可以继续做其它工作或等待 shutdown。
         ros::AsyncSpinner spinner(
             static_cast<uint32_t>(spinner_threads));
         spinner.start();
@@ -158,6 +168,7 @@ int main(int argc, char** argv)
     }
     else if (spinner_mode == "spin_once")
     {
+        // spinOnce() 适合“主循环自己掌控节奏”的程序；每轮主动处理一次当前可用 callback。
         while (ros::ok())
         {
             ros::spinOnce();

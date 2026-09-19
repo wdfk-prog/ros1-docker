@@ -1,0 +1,33 @@
+# 差速底盘几何参数。
+wheel_radius: 0.10       # 单个车轮半径，单位 m。
+wheel_separation: 0.50   # 左右轮中心之间的距离，单位 m。
+
+# 教学 Node 的循环频率。
+publish_rate_hz: 20.0
+
+# Topic 名称。
+cmd_vel_topic: /cmd_vel
+joint_states_topic: /joint_states
+imu_topic: /imu/data_raw
+odom_topic: /odom
+diagnostics_topic: /diagnostics
+
+# frame / joint 名称。
+odom_frame_id: odom
+base_frame_id: base_link
+imu_frame_id: imu_link
+left_joint_name: left_wheel_joint
+right_joint_name: right_wheel_joint
+
+# IMU 方差。这里是教学参数，不代表任何真实传感器规格。
+imu_angular_velocity_variance: 0.001
+imu_linear_acceleration_variance: 0.04
+
+# Odometry 方差。这里同样只是为了说明 covariance 的填法。
+odom_pose_xy_variance: 0.02
+odom_pose_yaw_variance: 0.05
+odom_twist_linear_variance: 0.01
+odom_twist_angular_variance: 0.02
+
+# 对当前示例无法直接观测的自由度，使用很大的方差表达“不要信任这一维”。
+unobserved_variance: 1000000.0

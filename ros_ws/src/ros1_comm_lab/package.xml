@@ -6,17 +6,22 @@
   <maintainer email="dev@example.com">dev</maintainer>
   <license>BSD</license>
 
+  <!-- catkin 是 package 的构建系统。 -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <!-- 构建阶段根据 TransformValue.srv / Count.action 生成 C++ 等语言的接口代码。 -->
   <build_depend>message_generation</build_depend>
 
+  <!-- 这些 depend 同时作用于构建导出和运行阶段。 -->
   <depend>actionlib</depend>
   <depend>actionlib_msgs</depend>
   <depend>roscpp</depend>
   <depend>std_msgs</depend>
 
+  <!-- 已生成的 Service/Action 消息在其它 package 使用或运行时需要 message_runtime。 -->
   <build_export_depend>message_runtime</build_export_depend>
   <exec_depend>message_runtime</exec_depend>
 
+  <!-- rostest 只在测试时使用，所以声明为 test_depend。 -->
   <test_depend>rostest</test_depend>
 </package>

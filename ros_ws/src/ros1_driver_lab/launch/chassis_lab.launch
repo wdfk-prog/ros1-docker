@@ -1,0 +1,12 @@
+<launch>
+  <!--
+    第 12 章不再启动 TCP/串口/CAN 模拟器。
+    chassis_driver_node 内部使用一个极薄的 DemoChassisDevice 代表“底层数据已经获取”。
+  -->
+  <node pkg="ros1_driver_lab"
+        type="chassis_driver_node"
+        name="chassis_driver_node"
+        output="screen">
+    <rosparam command="load" file="$(find ros1_driver_lab)/config/chassis_lab.yaml" />
+  </node>
+</launch>

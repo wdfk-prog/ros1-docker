@@ -1,8 +1,10 @@
 <launch>
+  <!-- rostest 会先启动下面两个 server，再启动最后的 gtest 可执行文件。 -->
   <node pkg="ros1_comm_lab"
         type="transform_service_server"
         name="transform_service_server"
         output="screen">
+    <!-- 测试固定参数，保证断言中的期望值可重复。 -->
     <param name="service_name" value="/comm_lab/transform_value"/>
     <param name="multiplier" value="2"/>
     <param name="bias" value="3"/>
@@ -15,9 +17,11 @@
         name="count_action_server"
         output="screen">
     <param name="action_name" value="/comm_lab/count"/>
+    <!-- 测试把每步耗时缩短到 0.01 s，避免正常完成用例等待过久。 -->
     <param name="step_period" value="0.01"/>
   </node>
 
+  <!-- <test> 启动 gtest；time-limit 防止测试死锁时无限挂住 CI。 -->
   <test test-name="test_service_action"
         pkg="ros1_comm_lab"
         type="test_service_action"

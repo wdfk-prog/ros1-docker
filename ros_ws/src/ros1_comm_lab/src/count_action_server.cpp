@@ -12,9 +12,11 @@
 namespace
 {
 
+// 一个最小 Action server：按固定周期从 0 数到 target，并支持 Feedback 和 Cancel/Preempt。
 class CountActionServer
 {
 public:
+    // 用别名缩短后续较长的模板类型。
     using Server = actionlib::SimpleActionServer<ros1_comm_lab::CountAction>;
 
     CountActionServer(ros::NodeHandle& nh, ros::NodeHandle& pnh)
@@ -31,6 +33,7 @@ public:
             return;
         }
 
+        // 最后一个 false 表示构造后先不自动 start；这样可以先完成对象初始化，再显式对外提供 Action。
         server_ = std::make_unique<Server>(
             nh_,
             action_name_,
@@ -51,6 +54,7 @@ public:
     }
 
 private:
+    // Action 的取消/抢占不是异常；server 需要把当前进度写入 Result，并显式进入 PREEMPTED。
     bool finishIfPreempted(uint32_t completed_count)
     {
         if (!server_->isPreemptRequested())
@@ -66,6 +70,7 @@ private:
         return true;
     }
 
+    // SimpleActionServer 在收到 Goal 后调用这里。该函数代表一个可能持续较久的任务。
     void execute(const ros1_comm_lab::CountGoalConstPtr& goal)
     {
         uint32_t completed_count = 0;
@@ -77,9 +82,10 @@ private:
                 return;
             }
 
+            // 用 sleep 模拟每一步实际工作耗时。
             ros::WallDuration(step_period_).sleep();
 
-            // Cancel can arrive while the simulated work step blocks, so re-check before committing progress.
+            // sleep 期间可能收到 Cancel，所以“提交本次进度”前必须再次检查抢占请求。
             if (!ros::ok() || finishIfPreempted(completed_count))
             {
                 return;
@@ -87,6 +93,7 @@ private:
 
             ++completed_count;
 
+            // 每完成一步就发布 Feedback；这正是 Action 相比普通 Service 适合长任务的地方。
             ros1_comm_lab::CountFeedback feedback;
             feedback.current_count = completed_count;
             feedback.progress =
@@ -95,7 +102,7 @@ private:
             server_->publishFeedback(feedback);
         }
 
-        // A cancel/new goal can arrive after the last loop check but before the terminal state is committed.
+        // 最后一次循环检查结束到 setSucceeded() 之间仍存在窗口，因此提交终态前再检查一次 Cancel/Preempt。
         if (!ros::ok() || finishIfPreempted(completed_count))
         {
             return;

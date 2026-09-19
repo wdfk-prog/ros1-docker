@@ -25,6 +25,10 @@ RUN apt-get update && \
         ros-noetic-rqt-topic \
         ros-noetic-rosbag \
         ros-noetic-rostest \
+        ros-noetic-diagnostic-msgs \
+        ros-noetic-geometry-msgs \
+        ros-noetic-nav-msgs \
+        ros-noetic-sensor-msgs \
         tree \
         less \
         vim \

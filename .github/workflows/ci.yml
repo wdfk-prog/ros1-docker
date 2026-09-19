@@ -99,7 +99,7 @@ jobs:
                 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
               # 真正编译仓库中的示例 package。
-              catkin build ros1_hello ros1_bringup
+              catkin build ros1_hello ros1_bringup ros1_driver_lab
 
               # 除了依赖 catkin build 的退出码，再确认关键教学目标程序确实生成。
               test -x devel/lib/ros1_hello/hello_node
@@ -107,7 +107,10 @@ jobs:
               test -x devel/lib/ros1_hello/ready_server
               test -x devel/lib/ros1_hello/ready_client
 
-              # bringup package 必须能被 ROS package 索引发现。
+              # bringup 和第 12 章 Driver package 必须能被 ROS package 索引发现。
+              test -x devel/lib/ros1_driver_lab/chassis_driver_node
+
               source devel/setup.bash
               rospack find ros1_bringup >/dev/null
+              rospack find ros1_driver_lab >/dev/null
             '

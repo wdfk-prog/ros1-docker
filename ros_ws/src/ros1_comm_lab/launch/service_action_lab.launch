@@ -1,10 +1,14 @@
 <launch>
+  <!-- Service 使用的业务变换参数。 -->
   <arg name="multiplier" default="2"/>
   <arg name="bias" default="3"/>
   <arg name="max_input" default="100"/>
   <arg name="response_delay" default="0.0"/>
+
+  <!-- Action 每完成一次计数步骤后的模拟耗时。 -->
   <arg name="step_period" default="0.1"/>
 
+  <!-- 同步 Service server：收到 input 后立即/延时计算一次结果并返回。 -->
   <node pkg="ros1_comm_lab"
         type="transform_service_server"
         name="transform_service_server"
@@ -16,6 +20,7 @@
     <param name="response_delay" value="$(arg response_delay)"/>
   </node>
 
+  <!-- 长任务 Action server：执行过程中持续 Feedback，并可被 client cancel。 -->
   <node pkg="ros1_comm_lab"
         type="count_action_server"
         name="count_action_server"

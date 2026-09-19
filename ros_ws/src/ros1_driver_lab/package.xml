@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>ros1_driver_lab</name>
+  <version>0.0.1</version>
+  <description>ROS1 standard message and differential-drive data contract learning package.</description>
+  <maintainer email="dev@example.com">dev</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- 第 12 章只依赖 ROS1 标准消息和 roscpp。 -->
+  <depend>diagnostic_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+</package>

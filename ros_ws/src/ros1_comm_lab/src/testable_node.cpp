@@ -10,6 +10,7 @@
 namespace
 {
 
+// 统一读取非负整数参数，避免构造函数里重复相同的参数校验代码。
 bool readNonNegativeParam(
     ros::NodeHandle& pnh,
     const std::string& name,
@@ -51,6 +52,7 @@ public:
         pnh_.param<std::string>("input_topic", input_topic_, "/comm_lab/test_input");
         pnh_.param<std::string>("output_topic", output_topic_, "/comm_lab/test_output");
 
+        // 纯业务计算放在 MessageProcessor，Node 只负责参数、Topic 和日志等 ROS 适配。
         processor_ = std::make_unique<ros1_comm_lab::MessageProcessor>(
             multiplier, bias, max_input);
 
@@ -74,6 +76,7 @@ public:
     }
 
 private:
+    // Topic callback 只做“ROS 消息 -> 纯业务函数 -> ROS 消息”的薄适配。
     void inputCallback(const std_msgs::UInt32::ConstPtr& msg)
     {
         uint32_t output = 0;

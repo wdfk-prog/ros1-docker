@@ -6,8 +6,11 @@
   <maintainer email="dev@example.com">dev</maintainer>
   <license>BSD</license>
 
+  <!-- bringup 没有源码编译，仍由 catkin 管理 package。 -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <!-- system.launch 会启动 ros1_hello 中的 Node，因此运行时必须有 ros1_hello。 -->
   <exec_depend>ros1_hello</exec_depend>
+  <!-- roslaunch 是解析/执行 launch XML 的运行时工具。 -->
   <exec_depend>roslaunch</exec_depend>
 </package>

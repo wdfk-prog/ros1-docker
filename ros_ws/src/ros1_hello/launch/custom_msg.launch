@@ -1,4 +1,5 @@
 <launch>
+  <!-- 同时启动自定义消息的发布端和订阅端，方便一次命令完成最小联调。 -->
   <node pkg="ros1_hello"
         type="custom_msg_publisher"
         name="custom_msg_publisher"

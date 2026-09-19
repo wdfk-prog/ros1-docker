@@ -11,6 +11,7 @@
 namespace
 {
 
+// 把命令行字符串严格解析成 uint32_t；完整消费字符串且不越界才算成功。
 bool parseUint32(const char* text, uint32_t& value)
 {
     try
@@ -53,9 +54,11 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::NodeHandle pnh("~");
 
+    // Service 名称做成 private 参数，便于 launch/remap 时复用同一个 client。
     std::string service_name;
     pnh.param<std::string>("service_name", service_name, "/comm_lab/transform_value");
 
+    // 创建同步 ServiceClient；waitForExistence() 先等待 Master 中出现对应 Service。
     ros::ServiceClient client = nh.serviceClient<ros1_comm_lab::TransformValue>(service_name);
     if (!client.waitForExistence(ros::Duration(2.0)))
     {
@@ -63,9 +66,11 @@ int main(int argc, char** argv)
         return 3;
     }
 
+    // .srv 会生成一个同时包含 request/response 的 C++ Service 类型。
     ros1_comm_lab::TransformValue service;
     service.request.input = input;
 
+    // call() 为同步 RPC：返回前会等待 server 处理完成或底层调用失败。
     if (!client.call(service))
     {
         ROS_ERROR_STREAM("service call failed: " << service_name);

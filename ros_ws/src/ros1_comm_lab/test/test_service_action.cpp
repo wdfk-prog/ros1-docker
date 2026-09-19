@@ -24,6 +24,7 @@ protected:
 
     void SetUp() override
     {
+        // 每个测试开始前先连接真实的 Service/Action server，避免把“server 尚未启动”误判成业务失败。
         service_client_ = nh_.serviceClient<ros1_comm_lab::TransformValue>(
             "/comm_lab/transform_value");
 
@@ -33,6 +34,7 @@ protected:
             << "count action server did not become available within 2 seconds";
     }
 
+    // 每个 Action 用例都重新清零 Feedback 观测值，避免测试之间互相污染。
     void resetFeedback()
     {
         feedback_count_.store(0);
@@ -45,6 +47,7 @@ protected:
         feedback_count_.fetch_add(1);
     }
 
+    // cancel 用例先等 Goal 进入 ACTIVE，再发取消请求，确保真正覆盖“执行中抢占”。
     bool waitForActive(double timeout_seconds)
     {
         const ros::WallTime deadline = ros::WallTime::now() + ros::WallDuration(timeout_seconds);
@@ -66,6 +69,7 @@ protected:
     std::atomic<uint32_t> last_feedback_count_{0};
 };
 
+// Service 正常路径：RPC 成功，业务响应也成功。
 TEST_F(ServiceActionIntegrationTest, ServiceReturnsTransformedValueForNominalInput)
 {
     ros1_comm_lab::TransformValue service;
@@ -77,6 +81,7 @@ TEST_F(ServiceActionIntegrationTest, ServiceReturnsTransformedValueForNominalInp
     EXPECT_EQ("ok", service.response.message);
 }
 
+// Service 业务拒绝路径：传输仍成功，因此 client.call() 应成功，但 response.success=false。
 TEST_F(ServiceActionIntegrationTest, ServiceReportsBusinessRejectionWithoutTransportFailure)
 {
     ros1_comm_lab::TransformValue service;
@@ -88,6 +93,7 @@ TEST_F(ServiceActionIntegrationTest, ServiceReportsBusinessRejectionWithoutTrans
     EXPECT_EQ("input violates processor constraints", service.response.message);
 }
 
+// Action 正常完成路径：既要有 Feedback，也要得到 SUCCEEDED + Result。
 TEST_F(ServiceActionIntegrationTest, ActionCompletesAndPublishesFeedback)
 {
     resetFeedback();
@@ -114,6 +120,7 @@ TEST_F(ServiceActionIntegrationTest, ActionCompletesAndPublishesFeedback)
     EXPECT_LE(last_feedback_count_.load(), goal.target);
 }
 
+// Action 取消路径：ACTIVE Goal 被 cancel 后应进入 PREEMPTED，且不能声称 completed。
 TEST_F(ServiceActionIntegrationTest, ActionCancelTransitionsActiveGoalToPreempted)
 {
     resetFeedback();

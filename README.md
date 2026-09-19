@@ -75,7 +75,8 @@ ros1-docker/
 │   ├── 03_让Node通信_Topic_Parameter与roslaunch.md
 │   ├── 04_使用VSCode_RemoteSSH与DevContainer.md
 │   ├── 05_阅读roscpp源码并使用F12_F5调试.md
-│   └── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
+│   ├── ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md
+│   └── 12_ROS消息与驱动数据契约_差速底盘Driver.md
 │
 ├── ros_ws/
 │   └── src/
@@ -95,11 +96,19 @@ ros1-docker/
 │       │       ├── ready_server.cpp
 │       │       └── ready_client.cpp
 │       │
-│       └── ros1_bringup/
+│       ├── ros1_bringup/
+│       │   ├── CMakeLists.txt
+│       │   ├── package.xml
+│       │   ├── README.md
+│       │   └── launch/system.launch
+│       │
+│       └── ros1_driver_lab/
 │           ├── CMakeLists.txt
 │           ├── package.xml
 │           ├── README.md
-│           └── launch/system.launch
+│           ├── config/chassis_lab.yaml
+│           ├── launch/chassis_lab.launch
+│           └── src/chassis_driver_node.cpp
 │
 └── ros_debug_ws/
     └── src/.gitkeep
@@ -117,6 +126,7 @@ ros1-docker/
 | 3 | `03_让Node通信_Topic_Parameter与roslaunch.md` | 会运行 Node、查看 Topic、定义自定义 `.msg`、使用参数和 roslaunch |
 | 4 | `04_使用VSCode_RemoteSSH与DevContainer.md` | 理解 Host IDE 与 Container IDE 的边界，建立稳定的 IntelliSense/F12 工作流 |
 | 5 | `05_阅读roscpp源码并使用F12_F5调试.md` | 能阅读 `ros::init()` 源码，并用 GDB/F5 进入 roscpp |
+| 12 | `12_ROS消息与驱动数据契约_差速底盘Driver.md` | 理解 Twist、JointState、Imu、Odometry、covariance，并完成差速底盘正/逆运动学 |
 
 ## 第一次启动
 

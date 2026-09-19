@@ -13,6 +13,7 @@
 namespace
 {
 
+// 严格解析 Action 目标计数，拒绝负数、尾随字符和超过 uint32_t 的数值。
 bool parseUint32(const char* text, uint32_t& value)
 {
     try
@@ -33,6 +34,7 @@ bool parseUint32(const char* text, uint32_t& value)
     }
 }
 
+// 解析可选的“多少秒后取消”参数；NaN/Inf/负数都视为非法。
 bool parseNonNegativeDouble(const char* text, double& value)
 {
     try
@@ -47,6 +49,7 @@ bool parseNonNegativeDouble(const char* text, double& value)
     }
 }
 
+// Action server 执行过程中可以持续发布 Feedback；client 不必等待最终 Result 才看到进度。
 void feedbackCallback(const ros1_comm_lab::CountFeedbackConstPtr& feedback)
 {
     std::cout
@@ -83,10 +86,13 @@ int main(int argc, char** argv)
     }
 
     ros::NodeHandle pnh("~");
+
+    // Action 名称参数化，默认连接 /comm_lab/count。
     std::string action_name;
     pnh.param<std::string>("action_name", action_name, "/comm_lab/count");
 
-    // The internal spin thread consumes action status/feedback/result callbacks while main waits synchronously.
+    // 第二个参数 true 会启动 ActionClient 自己的 spin 线程。
+    // 因此 main 线程即使在 waitForResult() 同步等待，状态/Feedback/Result callback 仍可被处理。
     actionlib::SimpleActionClient<ros1_comm_lab::CountAction> client(action_name, true);
     if (!client.waitForServer(ros::Duration(2.0)))
     {
@@ -94,8 +100,11 @@ int main(int argc, char** argv)
         return 3;
     }
 
+    // Count.action 自动生成 CountGoal / CountFeedback / CountResult 等 C++ 类型。
     ros1_comm_lab::CountGoal goal;
     goal.target = target;
+
+    // sendGoal() 异步提交长任务；这里只显式注册 Feedback callback。
     client.sendGoal(
         goal,
         actionlib::SimpleActionClient<ros1_comm_lab::CountAction>::SimpleDoneCallback(),
@@ -104,10 +113,12 @@ int main(int argc, char** argv)
 
     if (cancel_requested)
     {
+        // 使用 WallDuration：这个命令行演示按真实墙钟时间等待，不受 /use_sim_time 影响。
         ros::WallDuration(cancel_after_sec).sleep();
         client.cancelGoal();
     }
 
+    // 等待 server 进入 SUCCEEDED / PREEMPTED / ABORTED 等终态。
     client.waitForResult();
 
     const actionlib::SimpleClientGoalState state = client.getState();
