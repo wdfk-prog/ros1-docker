@@ -37,11 +37,19 @@ nav:
       - "17 Navigation": "17_Navigation_move_base_costmap_planner与cmd_vel.md"
   - API Reference: https://wdfk-prog.github.io/ros1-docker/api/
 
+exclude_docs: |
+  /doxygen-mainpage.md
+
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight
+  - tables
 
 plugins:
   - search
