@@ -409,7 +409,7 @@ Container 没有被人工停止或删除，Host 重启后 Docker 会按 restart 
    |
    +--> CI：重新编译 ROS1 示例，确认代码还能构建
    |
-   +--> Docs CD：重新生成 Doxygen 网站并发布到 GitHub Pages
+   +--> Docs CD：重新生成 MkDocs 手册 + Doxygen API，并发布到 GitHub Pages
    |
    +--> Image CD：重新构建 Docker 镜像并发布到 GHCR
 ```
@@ -419,7 +419,7 @@ Container 没有被人工停止或删除，Host 重启后 Docker 会按 restart 
 | 工作流 | 作用 | 主要触发条件 |
 | --- | --- | --- |
 | `.github/workflows/ci.yml` | 在 ROS1 Noetic Docker 环境中执行真实 `catkin build ros1_hello` | Pull Request、`main` 相关代码更新、手工运行 |
-| `.github/workflows/pages-doxygen.yml` | 把 Markdown、源码和 Doxygen 注释生成 HTML，并发布到 GitHub Pages | `main` 的文档/源码更新、手工运行 |
+| `.github/workflows/pages-doxygen.yml` | MkDocs 发布教程主站，Doxygen 生成 `/api/` 源码/API 站点，并合并为一个 Pages artifact | `main` 的文档/源码更新、手工运行 |
 | `.github/workflows/publish-image.yml` | 构建开发镜像并推送到 GitHub Container Registry | `main`、`v*` Release tag、手工运行 |
 
 ### ROS1 CI 实际检查什么
@@ -448,7 +448,7 @@ ros_ws/devel/lib/ros1_hello/hello_listener
 
 因此，GitHub 上绿色的 ROS1 CI 表示“这一 commit 已经在仓库定义的 ROS1 Docker 环境中完成实际编译”，而不只是做了 YAML 或源码静态检查。
 
-### Doxygen 在线文档
+### MkDocs + Doxygen 在线文档
 
 文档站目标地址：
 
@@ -456,14 +456,13 @@ ros_ws/devel/lib/ros1_hello/hello_listener
 https://wdfk-prog.github.io/ros1-docker/
 ```
 
-Doxygen 同时读取：
+站点根目录由 MkDocs Material 发布 `docs/` 下的完整学习文档；Doxygen 只读取仓库自有 ROS1 示例源码：
 
 ```text
-docs/                       Markdown 学习文章
-ros_ws/src/ros1_hello/      ROS1 示例源码和代码注释
+ros_ws/src/                 ROS1 示例 package 的 C/C++ 源码和代码注释
 ```
 
-网站中可以查看 01~05 学习文档，也可以进入 File List、Globals 和源码浏览页面查看 C/C++ 文件与 Doxygen 注释。
+主站用于教程、学习路线和调试说明；`/api/` 下可以通过 File List、Globals、类型页面和源码浏览查看 C/C++ API。
 
 第一次启用 GitHub Pages 时，需要在仓库网页手工设置一次：
 
@@ -475,25 +474,28 @@ Settings
 → GitHub Actions
 ```
 
-完成后，`.github/workflows/pages-doxygen.yml` 会负责后续自动生成和部署，不需要提交 `build/doxygen/html` 生成物。
+完成后，`.github/workflows/pages-doxygen.yml` 会自动执行 `mkdocs build --strict`，再生成 Doxygen HTML 并复制到 `site/api/`，最后一次性部署 `site/`；不提交任何生成后的 HTML。
 
-如果想在本机开发 Container 中提前生成一次文档，可以执行：
+如果想在本机提前验证文档，可以分别构建 MkDocs 与 Doxygen：
 
 ```bash
 docker compose exec ros1-dev bash
 cd /workspace
+python -m pip install -r requirements-docs.txt
+mkdocs build --strict
 rm -rf build/doxygen
 mkdir -p build/doxygen
 doxygen Doxyfile
 ```
 
-生成首页位于：
+生成结果分别位于：
 
 ```text
+/workspace/site/index.html
 /workspace/build/doxygen/html/index.html
 ```
 
-`build/doxygen/` 已加入 `.gitignore`，因为它属于可重复生成的临时产物。
+`site/` 与 `build/doxygen/` 都是可重复生成的临时产物，不应提交到 Git。
 
 ### GHCR Docker 镜像
 

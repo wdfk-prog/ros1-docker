@@ -1,0 +1,54 @@
+site_name: ROS1 Noetic + Docker Learning Environment
+site_description: ROS1 Noetic, Docker, VS Code and source-reading learning notes
+site_url: https://wdfk-prog.github.io/ros1-docker/
+repo_url: https://github.com/wdfk-prog/ros1-docker
+repo_name: wdfk-prog/ros1-docker
+
+theme:
+  name: material
+  language: zh
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+
+nav:
+  - 首页: index.md
+  - ROS1 学习系列:
+      - "学习路线": "00_ROS1驱动开发学习路线与实施计划.md"
+      - "01 Docker 开发环境": "01_搭建ROS1_Noetic_Docker开发环境.md"
+      - "02 catkin 与第一个 Node": "02_创建catkin工作空间_Package与第一个Node.md"
+      - "03 Topic / Parameter / roslaunch": "03_让Node通信_Topic_Parameter与roslaunch.md"
+      - "04 VS Code 与 Dev Container": "04_使用VSCode_RemoteSSH与DevContainer.md"
+      - "05 roscpp 源码与调试": "05_阅读roscpp源码并使用F12_F5调试.md"
+      - "06 Node 生命周期": "06_ROS1_Node启动与生命周期.md"
+      - "07 Master / XML-RPC / Topic 注册": "ROS教程07：从 ros-start 顺着源码读懂 Master、XML-RPC 与 Topic 注册发现.md"
+      - "08 TCPROS 数据面": "ROS教程08_TCPROS数据面_Connection_Header_序列化与Socket数据传输.md"
+      - "09 CallbackQueue / Spinner": "09_CallbackQueue_Spinner与线程模型.md"
+      - "10 测试与 rosbag": "10_Unit_Test_rostest_rqt与rosbag验证闭环.md"
+      - "11 Service / Action": "ROS教程11：从 Service 到 Action——同步请求响应、长任务、Feedback、Cancel 与 actionlib 状态机.md"
+      - "11.5 roscore 源码": "ROS教程11.5：roscore源码阅读——从启动脚本到Master注册表与控制面.md"
+      - "12 驱动数据契约": "12_ROS消息与驱动数据契约_差速底盘Driver.md"
+      - "13 TF / tf2": "13_TF_tf2与移动机器人坐标系.md"
+      - "14 URDF": "14_URDF_robot_state_publisher与joint_states.md"
+      - "15 robot_localization": "15_robot_localization轮式里程计与IMU状态估计.md"
+      - "16 SLAM 与定位": "16_SLAM与定位_激光雷达_地图_AMCL与map-odom.md"
+      - "17 Navigation": "17_Navigation_move_base_costmap_planner与cmd_vel.md"
+  - API Reference: https://wdfk-prog.github.io/ros1-docker/api/
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+
+plugins:
+  - search
+
+validation:
+  nav:
+    not_found: warn
+  links:
+    not_found: info
+    anchors: info
